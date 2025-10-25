@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站集合导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 12px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 6px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            margin: 12px 0;
+            text-align: center;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 18px;
+            width: 220px;
+            max-width: 100%;
+            outline: none;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        
+        .category-btn {
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+        
+        .category-btn:hover,
+        .category-btn.active {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .site-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .site-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        
+        .site-name {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .site-desc {
+            font-size: 0.75em;
+            color: #666;
+            line-height: 1.2;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.6em;
+            }
+            
+            .search-input {
+                width: 100%;
+                max-width: 100%;
+                padding: 7px 10px;
+                font-size: 13px;
+            }
+            
+            .categories {
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+            
+            .category-btn {
+                padding: 4px 8px;
+                font-size: 0.75em;
+            }
+            
+            .sites-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 8px;
+            }
+            
+            .site-card {
+                height: 85px;
+                padding: 10px;
+            }
+            
+            .site-name {
+                font-size: 0.85em;
+            }
+            
+            .site-desc {
+                font-size: 0.7em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.4em;
+            }
+            
+            .subtitle {
+                font-size: 0.8em;
+            }
+            
+            .sites-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: 7px;
+            }
+            
+            .site-card {
+                height: 80px;
+                padding: 8px;
+            }
+            
+            .site-name {
+                font-size: 0.8em;
+            }
+            
+            .site-desc {
+                font-size: 0.65em;
+            }
+            
+            .footer {
+                font-size: 0.75em;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .sites-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .site-card {
+                height: auto;
+                min-height: 75px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>我的网站集合导航</h1>
+            <p class="subtitle">精选优质网站，一键直达</p>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="搜索网站..." id="searchInput">
+        </div>
+        
+        <div class="categories">
+            <button class="category-btn active" data-category="all">全部</button>
+            <button class="category-btn" data-category="tools">工具</button>
+            <button class="category-btn" data-category="social">社交</button>
+            <button class="category-btn" data-category="entertainment">娱乐</button>
+            <button class="category-btn" data-category="learning">学习</button>
+        </div>
+        
+        <div class="sites-grid" id="sitesGrid">
+            <!-- 网站卡片将通过JavaScript动态生成 -->
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 网站集合导航 - 精选优质资源</p>
+        </div>
+    </div>
+
+    <script>
+        // 网站数据 - 便于后续添加新网站
+        const websites = [
+            {name:"盘点转excel",
+	desc:"盘点内容转可粘贴为excel",
+	url:"https://yzwsoul23.github.io/Inventory-to-Excel/",
+	category:"tools"},
+	{name:"人员搜索",
+	desc:"人员拼音搜索表",
+	url:"https://yzwsoul23.github.io/zimu-search/",
+	category:"tools"},
+	{name:"数据列表",
+	desc:"盘点数据列表管理",
+	url:"https://yzwsoul23.github.io/Quick-inventory-check/",
+	category:"tools"},
+	{name:"1A2B",
+	desc:"1A2B 猜数字游戏",
+	url:"https://yzwsoul23.github.io/1A2B/",
+	category:"entertainment"},
+	{name:"数据列表Beta",
+	desc:"盘点数据列表管理Beta",
+	url:"https://yzwsoul23.github.io/Quick-inventory-checkBata/",
+	category:"tools"},
+	{name:"当代艺术驱动器",
+	desc:"抽象话生成装置",
+	url:"https://yzwsoul23.github.io/Contemporary-art-driver/",
+	category:"entertainment"},
+	{name:"选择题练习",
+	desc:"选择题练习系统",
+	url:"https://yzwsoul23.github.io/viewport/",
+	category:"learning"},
+	{name:"字幕转txt",
+	desc:"字幕时间轴信息移除工具",
+	url:"https://yzwsoul23.github.io/SrtToTXT/",
+	category:"tools"},
+        ];
+
+        // 渲染网站卡片
+        function renderSites(sites) {
+            const grid = document.getElementById('sitesGrid');
+            grid.innerHTML = '';
+            
+            sites.forEach(site => {
+                const card = document.createElement('div');
+                card.className = 'site-card';
+                card.innerHTML = `
+                    <div class="site-name">${site.name}</div>
+                    <div class="site-desc">${site.desc}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    window.open(site.url, '_blank');
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // 初始渲染所有网站
+        renderSites(websites);
+
+        // 分类筛选
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 更新按钮状态
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const category = btn.dataset.category;
+                let filteredSites;
+                
+                if (category === 'all') {
+                    filteredSites = websites;
+                } else {
+                    filteredSites = websites.filter(site => site.category === category);
+                }
+                
+                renderSites(filteredSites);
+            });
+        });
+
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+            
+            let filteredSites = websites;
+            
+            // 如果不是全部分类，先按分类筛选
+            if (activeCategory !== 'all') {
+                filteredSites = filteredSites.filter(site => site.category === activeCategory);
+            }
+            
+            // 按搜索词筛选
+            if (searchTerm) {
+                filteredSites = filteredSites.filter(site => 
+                    site.name.toLowerCase().includes(searchTerm) || 
+                    site.desc.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderSites(filteredSites);
+        });
+
+        // 添加新网站的函数 - 便于后续扩展
+        function addWebsite(name, desc, url, category) {
+            websites.push({
+                name: name,
+                desc: desc,
+                url: url,
+                category: category
+            });
+            renderSites(websites);
+        }
+    </script>
+</body>
+</html>
