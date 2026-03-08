@@ -3,221 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网站集合导航</title>
+    <title>我的工具箱</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 12px;
+
+        :root {
+            --bg-gradient-start: #0f0f1e;
+            --bg-gradient-end: #1a1a3d;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --accent-tools: #6366f1;
+            --accent-entertainment: #ec4899;
+            --accent-learning: #14b8a6;
         }
-        
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 16px;
+        }
+
         .container {
-            max-width: 1200px;
+            max-width: 768px;
             margin: 0 auto;
         }
-        
+
         header {
             text-align: center;
-            margin-bottom: 20px;
-            color: white;
+            margin-bottom: 24px;
+            padding-top: 12px;
         }
-        
+
         h1 {
-            font-size: 1.8em;
+            font-size: 28px;
+            font-weight: 700;
             margin-bottom: 6px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            letter-spacing: -0.5px;
         }
-        
+
         .subtitle {
-            font-size: 0.85em;
-            opacity: 0.9;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
-        
-        .search-box {
-            margin: 12px 0;
-            text-align: center;
-        }
-        
-        .search-input {
-            padding: 8px 12px;
-            font-size: 14px;
-            border: none;
-            border-radius: 18px;
-            width: 220px;
-            max-width: 100%;
-            outline: none;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-        
-        .categories {
+
+        .filter-buttons {
             display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 18px;
-        }
-        
-        .category-btn {
-            padding: 5px 10px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.8em;
-            transition: all 0.2s ease;
-        }
-        
-        .category-btn:hover,
-        .category-btn.active {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .sites-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
         }
-        
-        .site-card {
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
+
+        .filter-buttons::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            height: 90px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .site-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-        
-        .site-name {
-            font-size: 0.9em;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #333;
             white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-tools);
+            border-color: var(--accent-tools);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
-        
-        .site-desc {
-            font-size: 0.75em;
-            color: #666;
-            line-height: 1.2;
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-tools);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
-        
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 12px;
-            margin-top: 15px;
-            font-size: 0.8em;
-            opacity: 0.8;
+
+        .card.category-tools::before {
+            background: var(--accent-tools);
         }
-        
-        /* 移动端适配 */
-        @media (max-width: 768px) {
+
+        .card.category-entertainment::before {
+            background: var(--accent-entertainment);
+        }
+
+        .card.category-learning::before {
+            background: var(--accent-learning);
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .category-tools .card-icon {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+        }
+
+        .category-entertainment .card-icon {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.1));
+        }
+
+        .category-learning .card-icon {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.1));
+        }
+
+        .card-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
-            
+
             h1 {
-                font-size: 1.6em;
+                font-size: 24px;
             }
-            
-            .search-input {
-                width: 100%;
-                max-width: 100%;
-                padding: 7px 10px;
+
+            .grid {
+                gap: 10px;
+            }
+
+            .card {
+                padding: 14px 12px;
+            }
+
+            .card-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .card-name {
                 font-size: 13px;
             }
-            
-            .categories {
-                gap: 5px;
-                margin-bottom: 15px;
-            }
-            
-            .category-btn {
-                padding: 4px 8px;
-                font-size: 0.75em;
-            }
-            
-            .sites-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 8px;
-            }
-            
-            .site-card {
-                height: 85px;
-                padding: 10px;
-            }
-            
-            .site-name {
-                font-size: 0.85em;
-            }
-            
-            .site-desc {
-                font-size: 0.7em;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.4em;
-            }
-            
-            .subtitle {
-                font-size: 0.8em;
-            }
-            
-            .sites-grid {
-                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-                gap: 7px;
-            }
-            
-            .site-card {
-                height: 80px;
-                padding: 8px;
-            }
-            
-            .site-name {
-                font-size: 0.8em;
-            }
-            
-            .site-desc {
-                font-size: 0.65em;
-            }
-            
-            .footer {
-                font-size: 0.75em;
-            }
-        }
-        
-        @media (max-width: 360px) {
-            .sites-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .site-card {
-                height: auto;
-                min-height: 75px;
+
+            .card-desc {
+                font-size: 10px;
             }
         }
     </style>
@@ -225,173 +222,74 @@
 <body>
     <div class="container">
         <header>
-            <h1>我的网站集合导航</h1>
-            <p class="subtitle">精选优质网站，一键直达</p>
+            <h1>📦 我的工具箱</h1>
+            <p class="subtitle">便捷的个人网站导航</p>
         </header>
-        
-        <div class="search-box">
-            <input type="text" class="search-input" placeholder="搜索网站..." id="searchInput">
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-category="all">全部</button>
+            <button class="filter-btn" data-category="tools">工具</button>
+            <button class="filter-btn" data-category="entertainment">娱乐</button>
+            <button class="filter-btn" data-category="learning">学习</button>
         </div>
-        
-        <div class="categories">
-            <button class="category-btn active" data-category="all">全部</button>
-            <button class="category-btn" data-category="tools">工具</button>
-            <button class="category-btn" data-category="social">社交</button>
-            <button class="category-btn" data-category="entertainment">娱乐</button>
-            <button class="category-btn" data-category="learning">学习</button>
-        </div>
-        
-        <div class="sites-grid" id="sitesGrid">
-            <!-- 网站卡片将通过JavaScript动态生成 -->
-        </div>
-        
-        <div class="footer">
-            <p>&copy; 2024 网站集合导航 - 精选优质资源</p>
-        </div>
+
+        <div class="grid" id="grid"></div>
     </div>
 
     <script>
-        // 网站数据 - 便于后续添加新网站
         const websites = [
-            {name:"盘点转excel",
-	desc:"盘点内容转可粘贴为excel",
-	url:"https://yzwsoul23.github.io/Inventory-to-Excel/",
-	category:"tools"},
-	{name:"人员搜索",
-	desc:"人员拼音搜索表",
-	url:"https://yzwsoul23.github.io/zimu-search/",
-	category:"tools"},
-	{name:"数据列表",
-	desc:"盘点数据列表管理",
-	url:"https://yzwsoul23.github.io/Quick-inventory-check/",
-	category:"tools"},
-	{name:"1A2B",
-	desc:"1A2B 猜数字游戏",
-	url:"https://yzwsoul23.github.io/1A2B/",
-	category:"entertainment"},
-	{name:"数据列表Beta",
-	desc:"盘点数据列表管理Beta",
-	url:"https://yzwsoul23.github.io/Quick-inventory-checkBata/",
-	category:"tools"},
-	{name:"当代艺术驱动器",
-	desc:"抽象话生成装置",
-	url:"https://yzwsoul23.github.io/Contemporary-art-driver/",
-	category:"entertainment"},
-	{name:"选择题练习",
-	desc:"选择题练习系统",
-	url:"https://yzwsoul23.github.io/viewport/",
-	category:"learning"},
-	{name:"字幕转txt",
-	desc:"字幕时间轴信息移除工具",
-	url:"https://yzwsoul23.github.io/SrtToTXT/",
-	category:"tools"},
-	{name:"商品过期查询",
-	desc:"根据生产日期和保质期查询是否过期",
-	url:"https://yzwsoul23.github.io/expiryCheck/",
-	category:"tools"},
-	{name:"表格数据过滤",
-	desc:"过滤表格内容并筛选和添加字段",
-	url:"https://yzwsoul23.github.io/codeItemPro/",
-	category:"tools"},
-	{name:"多组表格查看器",
-	desc:"多组表格配货操作",
-	url:"https://yzwsoul23.github.io/showTable/",
-	category:"tools"},
-	{name:"快递柜取件码管理系统",
-	desc:"自动解析快递信息并分组显示",
-	url:"https://yzwsoul23.github.io/pickupCode/",
-	category:"tools"},
-	{name:"商品盘点系统",
-	desc:"扫描或输入商品条码，快速盘点商品",
-	url:"https://yzwsoul23.github.io/ScanCode/",
-	category:"tools"},
-	{name:"lrc歌词编辑器",
-	desc:"根据歌曲可以手动给歌词打时间戳并导出lrc歌词文件",
-	url:"https://yzwsoul23.github.io/lrcEditor/",
-	category:"tools"},
-    {name:"经文搜索",
-	desc:"根据经文缩写可以搜索并显示经文内容",
-	url:"https://yzwsoul23.github.io/bibleSearch/",
-	category:"tools"},
+            {name:"盘点转excel", desc:"盘点内容转可粘贴为excel", url:"https://yzwsoul23.github.io/Inventory-to-Excel/", category:"tools"},
+            {name:"人员搜索", desc:"人员拼音搜索表", url:"https://yzwsoul23.github.io/zimu-search/", category:"tools"},
+            {name:"数据列表", desc:"盘点数据列表管理", url:"https://yzwsoul23.github.io/Quick-inventory-check/", category:"tools"},
+            {name:"1A2B", desc:"1A2B 猜数字游戏", url:"https://yzwsoul23.github.io/1A2B/", category:"entertainment"},
+            {name:"数据列表Beta", desc:"盘点数据列表管理Beta", url:"https://yzwsoul23.github.io/Quick-inventory-checkBata/", category:"tools"},
+            {name:"当代艺术驱动器", desc:"抽象话生成装置", url:"https://yzwsoul23.github.io/Contemporary-art-driver/", category:"entertainment"},
+            {name:"选择题练习", desc:"选择题练习系统", url:"https://yzwsoul23.github.io/viewport/", category:"learning"},
+            {name:"字幕转txt", desc:"字幕时间轴信息移除工具", url:"https://yzwsoul23.github.io/SrtToTXT/", category:"tools"},
+            {name:"商品过期查询", desc:"根据生产日期和保质期查询是否过期", url:"https://yzwsoul23.github.io/expiryCheck/", category:"tools"},
+            {name:"表格数据过滤", desc:"过滤表格内容并筛选和添加字段", url:"https://yzwsoul23.github.io/codeItemPro/", category:"tools"},
+            {name:"多组表格查看器", desc:"多组表格配货操作", url:"https://yzwsoul23.github.io/showTable/", category:"tools"},
+            {name:"快递柜取件码管理系统", desc:"自动解析快递信息并分组显示", url:"https://yzwsoul23.github.io/pickupCode/", category:"tools"},
+            {name:"商品盘点系统", desc:"扫描或输入商品条码，快速盘点商品", url:"https://yzwsoul23.github.io/ScanCode/", category:"tools"},
+            {name:"lrc歌词编辑器", desc:"根据歌曲可以手动给歌词打时间戳并导出lrc歌词文件", url:"https://yzwsoul23.github.io/lrcEditor/", category:"tools"},
+            {name:"经文搜索", desc:"根据经文缩写可以搜索并显示经文内容", url:"https://yzwsoul23.github.io/bibleSearch/", category:"tools"},
         ];
 
-        // 渲染网站卡片
-        function renderSites(sites) {
-            const grid = document.getElementById('sitesGrid');
-            grid.innerHTML = '';
-            
-            sites.forEach(site => {
-                const card = document.createElement('div');
-                card.className = 'site-card';
-                card.innerHTML = `
-                    <div class="site-name">${site.name}</div>
-                    <div class="site-desc">${site.desc}</div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    window.open(site.url, '_blank');
-                });
-                
-                grid.appendChild(card);
-            });
+        const icons = {
+            tools: ['🔧', '📊', '📋', '🔍', '📝', '📦', '⚙️', '🔌', '📈', '💡'],
+            entertainment: ['🎮', '🎨', '🎭', '🎪', '✨', '🎵', '🎬', '🎯'],
+            learning: ['📚', '📖', '✏️', '🎓', '💻', '📐', '🔬', '🎯']
+        };
+
+        function getRandomIcon(category) {
+            const categoryIcons = icons[category] || icons.tools;
+            return categoryIcons[Math.floor(Math.random() * categoryIcons.length)];
         }
 
-        // 初始渲染所有网站
-        renderSites(websites);
+        function renderWebsites(filter = 'all') {
+            const grid = document.getElementById('grid');
+            const filtered = filter === 'all' ? websites : websites.filter(w => w.category === filter);
+            
+            grid.innerHTML = filtered.map(site => `
+                <a href="${site.url}" target="_blank" rel="noopener noreferrer">
+                    <div class="card category-${site.category}">
+                        <div class="card-icon">${getRandomIcon(site.category)}</div>
+                        <div class="card-name">${site.name}</div>
+                        <div class="card-desc">${site.desc}</div>
+                    </div>
+                </a>
+            `).join('');
+        }
 
-        // 分类筛选
-        document.querySelectorAll('.category-btn').forEach(btn => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // 更新按钮状态
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                const category = btn.dataset.category;
-                let filteredSites;
-                
-                if (category === 'all') {
-                    filteredSites = websites;
-                } else {
-                    filteredSites = websites.filter(site => site.category === category);
-                }
-                
-                renderSites(filteredSites);
+                renderWebsites(btn.dataset.category);
             });
         });
 
-        // 搜索功能
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
-            
-            let filteredSites = websites;
-            
-            // 如果不是全部分类，先按分类筛选
-            if (activeCategory !== 'all') {
-                filteredSites = filteredSites.filter(site => site.category === activeCategory);
-            }
-            
-            // 按搜索词筛选
-            if (searchTerm) {
-                filteredSites = filteredSites.filter(site => 
-                    site.name.toLowerCase().includes(searchTerm) || 
-                    site.desc.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            renderSites(filteredSites);
-        });
-
-        // 添加新网站的函数 - 便于后续扩展
-        function addWebsite(name, desc, url, category) {
-            websites.push({
-                name: name,
-                desc: desc,
-                url: url,
-                category: category
-            });
-            renderSites(websites);
-        }
+        renderWebsites();
     </script>
 </body>
 </html>
