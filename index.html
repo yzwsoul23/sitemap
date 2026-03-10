@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的工具箱</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -57,6 +58,32 @@
             color: var(--text-secondary);
         }
 
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-tools);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
         .filter-buttons {
             display: flex;
             gap: 8px;
@@ -98,6 +125,26 @@
             gap: 12px;
         }
 
+        @media (min-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -106,6 +153,26 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
@@ -226,6 +293,10 @@
             <p class="subtitle">便捷的个人网站导航</p>
         </header>
 
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="搜索网站..." id="searchInput">
+        </div>
+
         <div class="filter-buttons">
             <button class="filter-btn active" data-category="all">全部</button>
             <button class="filter-btn" data-category="tools">工具</button>
@@ -238,44 +309,43 @@
 
     <script>
         const websites = [
-            {name:"盘点转excel", desc:"盘点内容转可粘贴为excel", url:"https://yzwsoul23.github.io/Inventory-to-Excel/", category:"tools"},
-            {name:"人员搜索", desc:"人员拼音搜索表", url:"https://yzwsoul23.github.io/zimu-search/", category:"tools"},
-            {name:"数据列表", desc:"盘点数据列表管理", url:"https://yzwsoul23.github.io/Quick-inventory-check/", category:"tools"},
-            {name:"1A2B", desc:"1A2B 猜数字游戏", url:"https://yzwsoul23.github.io/1A2B/", category:"entertainment"},
-            {name:"数据列表Beta", desc:"盘点数据列表管理Beta", url:"https://yzwsoul23.github.io/Quick-inventory-checkBata/", category:"tools"},
-            {name:"当代艺术驱动器", desc:"抽象话生成装置", url:"https://yzwsoul23.github.io/Contemporary-art-driver/", category:"entertainment"},
-            {name:"选择题练习", desc:"选择题练习系统", url:"https://yzwsoul23.github.io/viewport/", category:"learning"},
-            {name:"字幕转txt", desc:"字幕时间轴信息移除工具", url:"https://yzwsoul23.github.io/SrtToTXT/", category:"tools"},
-            {name:"商品过期查询", desc:"根据生产日期和保质期查询是否过期", url:"https://yzwsoul23.github.io/expiryCheck/", category:"tools"},
-            {name:"表格数据过滤", desc:"过滤表格内容并筛选和添加字段", url:"https://yzwsoul23.github.io/codeItemPro/", category:"tools"},
-            {name:"多组表格查看器", desc:"多组表格配货操作", url:"https://yzwsoul23.github.io/showTable/", category:"tools"},
-            {name:"快递柜取件码管理系统", desc:"自动解析快递信息并分组显示", url:"https://yzwsoul23.github.io/pickupCode/", category:"tools"},
-            {name:"商品盘点系统", desc:"扫描或输入商品条码，快速盘点商品", url:"https://yzwsoul23.github.io/ScanCode/", category:"tools"},
-            {name:"lrc歌词编辑器", desc:"根据歌曲可以手动给歌词打时间戳并导出lrc歌词文件", url:"https://yzwsoul23.github.io/lrcEditor/", category:"tools"},
-            {name:"经文搜索", desc:"根据经文缩写可以搜索并显示经文内容", url:"https://yzwsoul23.github.io/bibleSearch/", category:"tools"},
+            {name:"盘点转excel", desc:"盘点内容转可粘贴为excel", url:"https://yzwsoul23.github.io/Inventory-to-Excel/", category:"tools", icon:"📋"},
+            {name:"人员搜索", desc:"人员拼音搜索表", url:"https://yzwsoul23.github.io/zimu-search/", category:"tools", icon:"🔍"},
+            {name:"数据列表", desc:"盘点数据列表管理", url:"https://yzwsoul23.github.io/Quick-inventory-check/", category:"tools", icon:"📊"},
+            {name:"1A2B", desc:"1A2B 猜数字游戏", url:"https://yzwsoul23.github.io/1A2B/", category:"entertainment", icon:"🎮"},
+            {name:"数据列表Beta", desc:"盘点数据列表管理Beta", url:"https://yzwsoul23.github.io/Quick-inventory-checkBata/", category:"tools", icon:"📈"},
+            {name:"当代艺术驱动器", desc:"抽象话生成装置", url:"https://yzwsoul23.github.io/Contemporary-art-driver/", category:"entertainment", icon:"🎨"},
+            {name:"选择题练习", desc:"选择题练习系统", url:"https://yzwsoul23.github.io/viewport/", category:"learning", icon:"📚"},
+            {name:"字幕转txt", desc:"字幕时间轴信息移除工具", url:"https://yzwsoul23.github.io/SrtToTXT/", category:"tools", icon:"📝"},
+            {name:"商品过期查询", desc:"根据生产日期和保质期查询是否过期", url:"https://yzwsoul23.github.io/expiryCheck/", category:"tools", icon:"📅"},
+            {name:"表格数据过滤", desc:"过滤表格内容并筛选和添加字段", url:"https://yzwsoul23.github.io/codeItemPro/", category:"tools", icon:"⚙️"},
+            {name:"多组表格查看器", desc:"多组表格配货操作", url:"https://yzwsoul23.github.io/showTable/", category:"tools", icon:"📄"},
+            {name:"快递柜取件码管理系统", desc:"自动解析快递信息并分组显示", url:"https://yzwsoul23.github.io/pickupCode/", category:"tools", icon:"📦"},
+            {name:"商品盘点系统", desc:"扫描或输入商品条码，快速盘点商品", url:"https://yzwsoul23.github.io/ScanCode/", category:"tools", icon:"🔧"},
+            {name:"lrc歌词编辑器", desc:"根据歌曲可以手动给歌词打时间戳并导出lrc歌词文件", url:"https://yzwsoul23.github.io/lrcEditor/", category:"tools", icon:"🎵"},
+            {name:"经文搜索", desc:"根据经文缩写可以搜索并显示经文内容", url:"https://yzwsoul23.github.io/bibleSearch/", category:"tools", icon:"📖"},
         ];
 
-        const icons = {
-            tools: ['🔧', '📊', '📋', '🔍', '📝', '📦', '⚙️', '🔌', '📈', '💡'],
-            entertainment: ['🎮', '🎨', '🎭', '🎪', '✨', '🎵', '🎬', '🎯'],
-            learning: ['📚', '📖', '✏️', '🎓', '💻', '📐', '🔬', '🎯']
-        };
-
-        function getRandomIcon(category) {
-            const categoryIcons = icons[category] || icons.tools;
-            return categoryIcons[Math.floor(Math.random() * categoryIcons.length)];
-        }
-
-        function renderWebsites(filter = 'all') {
+        function renderWebsites(filter = 'all', searchTerm = '') {
             const grid = document.getElementById('grid');
-            const filtered = filter === 'all' ? websites : websites.filter(w => w.category === filter);
+            let filtered = filter === 'all' ? websites : websites.filter(w => w.category === filter);
+            
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filtered = filtered.filter(w => 
+                    w.name.toLowerCase().includes(term) || 
+                    w.desc.toLowerCase().includes(term)
+                );
+            }
             
             grid.innerHTML = filtered.map(site => `
                 <a href="${site.url}" target="_blank" rel="noopener noreferrer">
                     <div class="card category-${site.category}">
-                        <div class="card-icon">${getRandomIcon(site.category)}</div>
-                        <div class="card-name">${site.name}</div>
-                        <div class="card-desc">${site.desc}</div>
+                        <div class="card-content">
+                            <div class="card-icon">${site.icon}</div>
+                            <div class="card-name">${site.name}</div>
+                            <div class="card-desc">${site.desc}</div>
+                        </div>
                     </div>
                 </a>
             `).join('');
@@ -285,8 +355,14 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                renderWebsites(btn.dataset.category);
+                const searchTerm = document.getElementById('searchInput').value;
+                renderWebsites(btn.dataset.category, searchTerm);
             });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const activeFilter = document.querySelector('.filter-btn.active').dataset.category;
+            renderWebsites(activeFilter, this.value);
         });
 
         renderWebsites();
