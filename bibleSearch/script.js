@@ -1,0 +1,1785 @@
+// 经卷数据
+const books = [
+    { name: "创世纪", short: "创", pinyin: "CSJ", fullPinyin: "chuangshiji" },
+    { name: "出埃及记", short: "出", pinyin: "CAJ", fullPinyin: "chuaijiji" },
+    { name: "利未记", short: "利", pinyin: "LWJ", fullPinyin: "liweiji" },
+    { name: "民数记", short: "民", pinyin: "MSJ", fullPinyin: "minshuji" },
+    { name: "申命记", short: "申", pinyin: "SMJ", fullPinyin: "shenmingji" },
+    { name: "约书亚记", short: "书", pinyin: "YS", fullPinyin: "yueshuya" },
+    { name: "士师记", short: "士", pinyin: "SSJ", fullPinyin: "shishiji" },
+    { name: "路得记", short: "路", pinyin: "LDJ", fullPinyin: "ludeji" },
+    { name: "撒母耳记上", short: "撒上", pinyin: "SMS", fullPinyin: "sammuereishang" },
+    { name: "撒母耳记下", short: "撒下", pinyin: "SMX", fullPinyin: "sammuereixia" },
+    { name: "列王纪上", short: "王上", pinyin: "LWS", fullPinyin: "liewangjishang" },
+    { name: "列王纪下", short: "王下", pinyin: "LWX", fullPinyin: "liewangjixia" },
+    { name: "历代志上", short: "代上", pinyin: "LDS", fullPinyin: "lidaijishang" },
+    { name: "历代志下", short: "代下", pinyin: "LDX", fullPinyin: "lidaijixia" },
+    { name: "以斯拉记", short: "拉", pinyin: "YSL", fullPinyin: "yisilaji" },
+    { name: "尼希米记", short: "尼", pinyin: "NXM", fullPinyin: "niximiji" },
+    { name: "以斯帖记", short: "斯", pinyin: "YST", fullPinyin: "yisiteji" },
+    { name: "约伯记", short: "伯", pinyin: "YBJ", fullPinyin: "yueboji" },
+    { name: "诗篇", short: "诗", pinyin: "SP", fullPinyin: "shipian" },
+    { name: "箴言", short: "箴", pinyin: "ZY", fullPinyin: "zhenyan" },
+    { name: "传道书", short: "传", pinyin: "CDS", fullPinyin: "chuandaoshu" },
+    { name: "雅歌", short: "歌", pinyin: "YG", fullPinyin: "yage" },
+    { name: "以赛亚书", short: "赛", pinyin: "YSY", fullPinyin: "yisaishu" },
+    { name: "耶利米书", short: "耶", pinyin: "YLM", fullPinyin: "yelimishu" },
+    { name: "耶利米哀歌", short: "哀", pinyin: "YAG", fullPinyin: "yelimiaige" },
+    { name: "以西结书", short: "结", pinyin: "YXJ", fullPinyin: "yixijieshu" },
+    { name: "但以理书", short: "但", pinyin: "DYL", fullPinyin: "danyilishu" },
+    { name: "何西阿书", short: "何", pinyin: "HXA", fullPinyin: "hexiasu" },
+    { name: "约珥书", short: "珥", pinyin: "YES", fullPinyin: "yueershu" },
+    { name: "阿摩司书", short: "摩", pinyin: "AMS", fullPinyin: "amoshu" },
+    { name: "俄巴底亚书", short: "俄", pinyin: "EBD", fullPinyin: "ebadishu" },
+    { name: "约拿书", short: "拿", pinyin: "YNS", fullPinyin: "yueshu" },
+    { name: "弥迦书", short: "弥", pinyin: "MJS", fullPinyin: "mijiashu" },
+    { name: "那鸿书", short: "鸿", pinyin: "NHS", fullPinyin: "nahongshu" },
+    { name: "哈巴谷书", short: "哈", pinyin: "HBG", fullPinyin: "habagus" },
+    { name: "西番雅书", short: "番", pinyin: "XFY", fullPinyin: "xifanyashu" },
+    { name: "哈该书", short: "该", pinyin: "HGS", fullPinyin: "hagashu" },
+    { name: "撒迦利亚书", short: "亚", pinyin: "SJL", fullPinyin: "sajialiyashu" },
+    { name: "玛拉基书", short: "玛", pinyin: "MLJ", fullPinyin: "malajishu" },
+    { name: "马太福音", short: "太", pinyin: "MT", fullPinyin: "matianfuyin" },
+    { name: "马可福音", short: "可", pinyin: "MK", fullPinyin: "makefuyin" },
+    { name: "路加福音", short: "路", pinyin: "LJ", fullPinyin: "lujiayinfuyin" },
+    { name: "约翰福音", short: "约", pinyin: "YH", fullPinyin: "yuehanfuyin" },
+    { name: "使徒行传", short: "徒", pinyin: "ST", fullPinyin: "shituoxingchuan" },
+    { name: "罗马书", short: "罗", pinyin: "LM", fullPinyin: "luomashu" },
+    { name: "哥林多前书", short: "林前", pinyin: "GLQ", fullPinyin: "gelinduoqianshu" },
+    { name: "哥林多后书", short: "林后", pinyin: "GLH", fullPinyin: "gelinduohoushu" },
+    { name: "加拉太书", short: "加", pinyin: "JLT", fullPinyin: "jialataishu" },
+    { name: "以弗所书", short: "弗", pinyin: "YFS", fullPinyin: "yifusu" },
+    { name: "腓立比书", short: "腓", pinyin: "FLB", fullPinyin: "feilipishu" },
+    { name: "歌罗西书", short: "西", pinyin: "GLX", fullPinyin: "geluoxishu" },
+    { name: "帖撒罗尼迦前书", short: "帖前", pinyin: "TSQ", fullPinyin: "tiesaluonijiaqianshu" },
+    { name: "帖撒罗尼迦后书", short: "帖后", pinyin: "TSH", fullPinyin: "tiesaluonijiahoushu" },
+    { name: "提摩太前书", short: "提前", pinyin: "TMQ", fullPinyin: "timotaiqianshu" },
+    { name: "提摩太后书", short: "提后", pinyin: "TMH", fullPinyin: "timotaihoushu" },
+    { name: "提多书", short: "多", pinyin: "TDS", fullPinyin: "tidushu" },
+    { name: "腓利门书", short: "门", pinyin: "FLM", fullPinyin: "feilimenshu" },
+    { name: "希伯来书", short: "来", pinyin: "XBL", fullPinyin: "xibolai" },
+    { name: "雅各书", short: "雅", pinyin: "YGS", fullPinyin: "yageboshu" },
+    { name: "彼得前书", short: "彼前", pinyin: "BDQ", fullPinyin: "bideqianshu" },
+    { name: "彼得后书", short: "彼后", pinyin: "BDH", fullPinyin: "bidehoushu" },
+    { name: "约翰一书", short: "约一", pinyin: "YHY", fullPinyin: "yuehanyishu" },
+    { name: "约翰二书", short: "约二", pinyin: "YHE", fullPinyin: "yuehanyiershu" },
+    { name: "约翰三书", short: "约三", pinyin: "YHS", fullPinyin: "yuehansanshu" },
+    { name: "犹大书", short: "犹", pinyin: "YDS", fullPinyin: "youdashu" },
+    { name: "启示录", short: "启", pinyin: "QSL", fullPinyin: "qishilu" }
+];
+
+// 经文数据
+let bibleData = {};
+let loadedBooks = {};
+let sectionHeadingsData = null;  // 段落标题数据
+
+// 复制设置
+let copySettings = {
+    withVerseNumbers: true,
+    eachVerseNewline: false,
+    shortBookName: true,
+    referencePosition: 'single-top',
+    bracketStyle: '【】',
+    displayMode: 'verse',
+    showGhostText: true,
+    enableSemanticColoring: true,
+    enableNameUnderline: true,
+    showSectionTitles: true,
+    fontSize: 16
+};
+
+// 语义化着色配置（基于Monarch词法分析器）
+const SemanticColoringConfig = {
+    quotes: {
+        open: ['"', "'", '「', '『', '\u201C', '\u2018'],
+        close: ['"', "'", '」', '』', '\u201D', '\u2019'],
+        className: 'bible-quote'
+    },
+    brackets: {
+        pairs: [
+            { open: '《', close: '》' },
+            { open: '<', close: '>' },
+            { open: '＜', close: '＞' },
+            { open: '(', close: ')' },
+            { open: '（', close: '）' },
+            { open: '[', close: ']' },
+            { open: '【', close: '】' },
+            { open: '〖', close: '〗' },
+            { open: '{', close: '}' },
+            { open: '｛', close: '｝' }
+        ],
+        className: 'bible-bracket'
+    },
+    punctuation: /[,，.。!！?？:：;；、）\]\}｝】〗》＞>…—\-]/,
+    number: /[0-9０-９]+/,
+    english: /[A-Za-z\uFF21-\uFF3A\uFF41-\uFF5A]+/,
+    specialMarker: /[·•▪*＊✲❈※☆♡♥○●√✔☑×✘☒]/
+};
+
+function colorizeText(text) {
+    if (!copySettings.enableSemanticColoring) {
+        return text;
+    }
+
+    let result = '';
+    let i = 0;
+    const len = text.length;
+    const config = SemanticColoringConfig;
+
+    while (i < len) {
+        let matched = false;
+        const char = text[i];
+
+        // 1. 检测引号开始
+        for (let q = 0; q < config.quotes.open.length; q++) {
+            if (text.startsWith(config.quotes.open[q], i)) {
+                const closeQuote = config.quotes.close[q];
+                const closeIdx = text.indexOf(closeQuote, i + 1);
+                if (closeIdx !== -1) {
+                    // 找到配对引号
+                    const innerContent = text.substring(i + 1, closeIdx);
+                    result += `<span class="${config.quotes.className}">${escapeHtml(config.quotes.open[q])}${colorizeText(innerContent)}${escapeHtml(closeQuote)}</span>`;
+                    i = closeIdx + 1;
+                    matched = true;
+                    break;
+                } else {
+                    // 未配对引号，作为普通文本处理
+                    result += escapeHtml(char);
+                    i++;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+
+        if (matched) continue;
+
+        // 2. 检测括号开始
+        for (const bracket of config.brackets.pairs) {
+            if (text.startsWith(bracket.open, i)) {
+                const closeIdx = text.indexOf(bracket.close, i + 1);
+                if (closeIdx !== -1) {
+                    // 找到配对括号
+                    const innerContent = text.substring(i + 1, closeIdx);
+                    result += `<span class="${config.brackets.className}">${escapeHtml(bracket.open)}${colorizeText(innerContent)}${escapeHtml(bracket.close)}</span>`;
+                    i = closeIdx + 1;
+                    matched = true;
+                    break;
+                } else {
+                    // 未配对括号，作为普通文本处理
+                    result += escapeHtml(char);
+                    i++;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+
+        if (matched) continue;
+
+        // 3. 检测特殊标记
+        const specialMatch = text.slice(i).match(config.specialMarker);
+        if (specialMatch && specialMatch.index === 0) {
+            result += `<span class="bible-special">${escapeHtml(specialMatch[0])}</span>`;
+            i += specialMatch[0].length;
+            continue;
+        }
+
+        // 4. 检测数字
+        const numMatch = text.slice(i).match(config.number);
+        if (numMatch && numMatch.index === 0) {
+            result += `<span class="bible-number">${escapeHtml(numMatch[0])}</span>`;
+            i += numMatch[0].length;
+            continue;
+        }
+
+        // 5. 检测英文
+        const engMatch = text.slice(i).match(config.english);
+        if (engMatch && engMatch.index === 0) {
+            result += `<span class="bible-english">${escapeHtml(engMatch[0])}</span>`;
+            i += engMatch[0].length;
+            continue;
+        }
+
+        // 6. 检测标点符号
+        const punctMatch = text.slice(i).match(config.punctuation);
+        if (punctMatch && punctMatch.index === 0) {
+            result += `<span class="bible-punctuation">${escapeHtml(punctMatch[0])}</span>`;
+            i += punctMatch[0].length;
+            continue;
+        }
+
+        // 7. 兜底：普通字符
+        result += escapeHtml(char);
+        i++;
+    }
+
+    return result;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+const VERSE_BOUNDARY = '\x00\x00VERSE\x00\x00';
+
+function colorizeVerses(verseTexts) {
+    if (!copySettings.enableSemanticColoring || !verseTexts || verseTexts.length === 0) {
+        return verseTexts || [];
+    }
+
+    const mergedText = verseTexts.join(VERSE_BOUNDARY);
+    const coloredHtml = colorizeTextWithBoundaries(mergedText);
+    return coloredHtml.split(VERSE_BOUNDARY);
+}
+
+function colorizeTextWithBoundaries(text) {
+    let result = '';
+    let i = 0;
+    const len = text.length;
+    const config = SemanticColoringConfig;
+
+    while (i < len) {
+        // 检测到节边界标记，直接保留
+        if (text.startsWith(VERSE_BOUNDARY, i)) {
+            result += VERSE_BOUNDARY;
+            i += VERSE_BOUNDARY.length;
+            continue;
+        }
+
+        let matched = false;
+        const char = text[i];
+
+        // 1. 检测引号开始
+        for (let q = 0; q < config.quotes.open.length; q++) {
+            if (text.startsWith(config.quotes.open[q], i)) {
+                const openQuote = config.quotes.open[q];
+                const closeQuote = config.quotes.close[q];
+                const closeIdx = text.indexOf(closeQuote, i + openQuote.length);
+
+                if (closeIdx !== -1) {
+                    // 找到配对引号
+                    const innerContent = text.substring(i + openQuote.length, closeIdx);
+
+                    if (!innerContent.includes(VERSE_BOUNDARY)) {
+                        // 同一节内，直接整体着色
+                        result += `<span class="${config.quotes.className}">${escapeHtml(openQuote)}${colorizeTextWithBoundaries(innerContent)}${escapeHtml(closeQuote)}</span>`;
+                    } else {
+                        // 跨越多节，每段用独立完整的span包裹
+                        const parts = innerContent.split(VERSE_BOUNDARY);
+                        const cls = config.quotes.className;
+
+                        // 第一段：带开引号
+                        result += `<span class="${cls}">${escapeHtml(openQuote)}${colorizeTextWithBoundaries(parts[0])}</span>`;
+
+                        // 中间段：无引号但同色
+                        for (let p = 1; p < parts.length - 1; p++) {
+                            result += VERSE_BOUNDARY;
+                            result += `<span class="${cls}">${colorizeTextWithBoundaries(parts[p])}</span>`;
+                        }
+
+                        // 最后一段：带闭引号
+                        if (parts.length > 1) {
+                            result += VERSE_BOUNDARY;
+                            result += `<span class="${cls}">${colorizeTextWithBoundaries(parts[parts.length - 1])}${escapeHtml(closeQuote)}</span>`;
+                        }
+                    }
+
+                    i = closeIdx + closeQuote.length;
+                    matched = true;
+                    break;
+                } else {
+                    // 未找到闭合引号，作为普通文本处理
+                    result += escapeHtml(char);
+                    i++;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+
+        if (matched) continue;
+
+        // 2. 检测括号开始
+        for (const bracket of config.brackets.pairs) {
+            if (text.startsWith(bracket.open, i)) {
+                const closeIdx = text.indexOf(bracket.close, i + bracket.open.length);
+
+                if (closeIdx !== -1) {
+                    // 找到配对括号
+                    const innerContent = text.substring(i + bracket.open.length, closeIdx);
+
+                    if (!innerContent.includes(VERSE_BOUNDARY)) {
+                        // 同一节内，直接整体着色
+                        result += `<span class="${config.brackets.className}">${escapeHtml(bracket.open)}${colorizeTextWithBoundaries(innerContent)}${escapeHtml(bracket.close)}</span>`;
+                    } else {
+                        // 跨越多节，每段用独立完整的span包裹
+                        const parts = innerContent.split(VERSE_BOUNDARY);
+                        const cls = config.brackets.className;
+
+                        // 第一段：带开括号
+                        result += `<span class="${cls}">${escapeHtml(bracket.open)}${colorizeTextWithBoundaries(parts[0])}</span>`;
+
+                        // 中间段：无括号但同色
+                        for (let p = 1; p < parts.length - 1; p++) {
+                            result += VERSE_BOUNDARY;
+                            result += `<span class="${cls}">${colorizeTextWithBoundaries(parts[p])}</span>`;
+                        }
+
+                        // 最后一段：带闭括号
+                        if (parts.length > 1) {
+                            result += VERSE_BOUNDARY;
+                            result += `<span class="${cls}">${colorizeTextWithBoundaries(parts[parts.length - 1])}${escapeHtml(bracket.close)}</span>`;
+                        }
+                    }
+
+                    i = closeIdx + bracket.close.length;
+                    matched = true;
+                    break;
+                } else {
+                    // 未找到闭合括号，作为普通文本处理
+                    result += escapeHtml(char);
+                    i++;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+
+        if (matched) continue;
+
+        // 3. 检测特殊标记
+        const specialMatch = text.slice(i).match(config.specialMarker);
+        if (specialMatch && specialMatch.index === 0) {
+            result += `<span class="bible-special">${escapeHtml(specialMatch[0])}</span>`;
+            i += specialMatch[0].length;
+            continue;
+        }
+
+        // 4. 检测数字
+        const numMatch = text.slice(i).match(config.number);
+        if (numMatch && numMatch.index === 0) {
+            result += `<span class="bible-number">${escapeHtml(numMatch[0])}</span>`;
+            i += numMatch[0].length;
+            continue;
+        }
+
+        // 5. 检测英文
+        const engMatch = text.slice(i).match(config.english);
+        if (engMatch && engMatch.index === 0) {
+            result += `<span class="bible-english">${escapeHtml(engMatch[0])}</span>`;
+            i += engMatch[0].length;
+            continue;
+        }
+
+        // 6. 检测标点符号
+        const punctMatch = text.slice(i).match(config.punctuation);
+        if (punctMatch && punctMatch.index === 0) {
+            result += `<span class="bible-punctuation">${escapeHtml(punctMatch[0])}</span>`;
+            i += punctMatch[0].length;
+            continue;
+        }
+
+        // 7. 兜底：普通字符
+        result += escapeHtml(char);
+        i++;
+    }
+
+    return result;
+}
+
+// 基于 Pretext 技术的语义化着色（使用 Rich-Inline 布局引擎）
+function colorizeWithPretextEngine(text) {
+    if (!copySettings.enableSemanticColoring || typeof PretextBible === 'undefined') {
+        return text;
+    }
+
+    try {
+        const domNode = PretextBible.colorizeWithPretext(text, true, copySettings.enableNameUnderline);
+        if (domNode && domNode.nodeType === 1) {
+            return domNode;
+        }
+        return text;
+    } catch (e) {
+        console.warn('Pretext 引擎出错，回退到传统模式:', e);
+        return colorizeText(text);
+    }
+}
+
+function renderVerseWithPretext(verseElement, verseNumber, text, isParagraphMode = false) {
+    console.log('[Script] renderVerseWithPretext called:', { verseNumber, textLength: text.length, isParagraphMode });
+    console.log('[Script] PretextBible available:', typeof PretextBible !== 'undefined');
+    console.log('[Script] enableSemanticColoring:', copySettings.enableSemanticColoring);
+
+    if (typeof PretextBible === 'undefined') {
+        console.log('[Script] PretextBible undefined! Falling back to traditional mode');
+        if (isParagraphMode) {
+            verseElement.innerHTML = `<sup class="verse-number">${verseNumber}</sup>${colorizeText(text)}`;
+        } else {
+            verseElement.innerHTML = `<span class="verse-number">${verseNumber}</span>${colorizeText(text)}`;
+        }
+        return;
+    }
+
+    try {
+        if (isParagraphMode) {
+            const numberSup = document.createElement('sup');
+            numberSup.className = 'verse-number';
+            numberSup.textContent = verseNumber;
+            verseElement.appendChild(numberSup);
+
+            if (copySettings.enableSemanticColoring) {
+                console.log('[Script] Calling PretextBible.colorizeWithPretext...');
+                const coloredContent = PretextBible.colorizeWithPretext(text, true, copySettings.enableNameUnderline);
+                console.log('[Script] Returned content type:', typeof coloredContent, 'nodeType:', coloredContent?.nodeType);
+                
+                if (coloredContent && coloredContent.nodeType === 1) {
+                    verseElement.appendChild(coloredContent);
+                    console.log('[Script] Successfully appended colored DOM node');
+                } else {
+                    console.warn('[Script] Invalid returned content, using plain text');
+                    verseElement.appendChild(document.createTextNode(text));
+                }
+            } else {
+                console.log('[Script] Coloring disabled by settings, using plain text');
+                verseElement.appendChild(document.createTextNode(text));
+            }
+        } else {
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'verse-number';
+            numberSpan.textContent = verseNumber;
+            verseElement.appendChild(numberSpan);
+
+            if (copySettings.enableSemanticColoring) {
+                console.log('[Script] Calling PretextBible.colorizeWithPretext...');
+                const coloredContent = PretextBible.colorizeWithPretext(text, true, copySettings.enableNameUnderline);
+                console.log('[Script] Returned content type:', typeof coloredContent, 'nodeType:', coloredContent?.nodeType);
+                
+                if (coloredContent && coloredContent.nodeType === 1) {
+                    verseElement.appendChild(coloredContent);
+                    console.log('[Script] Successfully appended colored DOM node');
+                } else {
+                    console.warn('[Script] Invalid returned content, using plain text');
+                    verseElement.appendChild(document.createTextNode(text));
+                }
+            } else {
+                console.log('[Script] Coloring disabled by settings, using plain text');
+                verseElement.appendChild(document.createTextNode(text));
+            }
+        }
+    } catch (e) {
+        console.error('[Script] Pretext 渲染出错:', e);
+        console.warn('回退到传统模式');
+        if (isParagraphMode) {
+            verseElement.innerHTML = `<sup class="verse-number">${verseNumber}</sup>${colorizeText(text)}`;
+        } else {
+            verseElement.innerHTML = `<span class="verse-number">${verseNumber}</span>${colorizeText(text)}`;
+        }
+    }
+}
+
+// 中文数字映射
+const chineseNumbers = {
+    '零': 0, '一': 1, '二': 2, '三': 3, '四': 4,
+    '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
+    '十': 10, '百': 100, '千': 1000
+};
+
+// 中文数字转阿拉伯数字
+function chineseToNumber(str) {
+    if (!str) return NaN;
+    
+    // 如果已经是数字，直接返回
+    if (!isNaN(parseInt(str))) {
+        return parseInt(str);
+    }
+    
+    // 中文数字转换
+    let result = 0;
+    let temp = 0;
+    
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        const num = chineseNumbers[char];
+        
+        if (num === undefined) continue;
+        
+        if (num >= 10) {
+            // 单位：十、百、千
+            if (temp === 0) {
+                // 如果前面没有数字，单位当作1
+                temp = 1;
+            }
+            result += temp * num;
+            temp = 0;
+        } else {
+            // 数字：0-9
+            temp = num;
+        }
+    }
+    
+    // 加上最后的数字
+    result += temp;
+    return result > 0 ? result : NaN;
+}
+
+// 解析语音输入
+function parseVoiceInput(text) {
+    // 移除标点符号
+    text = text.replace(/[。！？，、；：""''（）【】《》\s]/g, '');
+    
+    // 匹配经卷名
+    let bookName = null;
+    for (const book of books) {
+        if (text.includes(book.name)) {
+            bookName = book.name;
+            text = text.substring(text.indexOf(book.name) + book.name.length);
+            break;
+        }
+    }
+    
+    if (!bookName) return null;
+    
+    // 匹配章号
+    let chapter = null;
+    const chapterMatch = text.match(/^(\d+|[零一二三四五六七八九十百千]+)章/);
+    if (chapterMatch) {
+        chapter = chineseToNumber(chapterMatch[1]);
+        text = text.substring(chapterMatch[0].length);
+    }
+    
+    if (!chapter) return null;
+    
+    // 匹配节号
+    let startVerse = null;
+    let endVerse = null;
+    
+    // 匹配范围：1节到12节、1~3节、1到3节、1-3节、一到三节
+    const rangeMatch = text.match(/^(\d+|[零一二三四五六七八九十百千]+)节?[~\-到]+(\d+|[零一二三四五六七八九十百千]+)节?$/);
+    if (rangeMatch) {
+        startVerse = chineseToNumber(rangeMatch[1]);
+        endVerse = chineseToNumber(rangeMatch[2]);
+    } else {
+        // 匹配单节：1节、一节
+        const verseMatch = text.match(/^(\d+|[零一二三四五六七八九十百千]+)节?$/);
+        if (verseMatch) {
+            startVerse = chineseToNumber(verseMatch[1]);
+            endVerse = startVerse;
+        }
+    }
+    
+    if (!startVerse) return null;
+    
+    return {
+        bookName: bookName,
+        chapter: chapter,
+        startVerse: startVerse,
+        endVerse: endVerse || startVerse
+    };
+}
+
+// 检查是否是完整的语音输入
+function isCompleteVoiceInput(text) {
+    // 移除标点符号
+    const cleanText = text.replace(/[。！？，、；：""''（）【】《》\s]/g, '');
+    
+    // 检查是否包含经卷名
+    let hasBook = false;
+    for (const book of books) {
+        if (cleanText.includes(book.name)) {
+            hasBook = true;
+            break;
+        }
+    }
+    
+    if (!hasBook) return false;
+    
+    // 检查是否包含章
+    if (!cleanText.match(/[章]/)) return false;
+    
+    // 检查是否包含节或数字范围
+    if (!cleanText.match(/[节~\-到]/) && !cleanText.match(/\d+/)) return false;
+    
+    return true;
+}
+
+// DOM 元素
+let input, suggestions, result, copyBtn;
+
+// 当前状态
+let currentBook = null;
+let currentChapter = null;
+let currentStartVerse = null;
+let currentEndVerse = null;
+let inputState = 'book';
+let previousValue = '';
+
+// 按需加载经卷数据
+async function loadBook(bookName) {
+    if (loadedBooks[bookName]) {
+        return true;
+    }
+    
+    try {
+        const response = await fetch(`data/${bookName}.json`);
+        if (response.ok) {
+            const data = await response.json();
+            bibleData[bookName] = data.chapters;
+            loadedBooks[bookName] = true;
+            console.log(`已加载: ${bookName}`);
+            return true;
+        }
+    } catch (error) {
+        console.error(`加载${bookName}失败:`, error);
+    }
+    return false;
+}
+
+// 加载段落小标题数据
+async function loadSectionHeadings() {
+    if (sectionHeadingsData !== null) {
+        return sectionHeadingsData;
+    }
+    try {
+        const response = await fetch('section_headings.json');
+        if (response.ok) {
+            const data = await response.json();
+            sectionHeadingsData = data.books || {};
+            console.log(`已加载段落标题数据，共 ${Object.keys(sectionHeadingsData).length} 卷`);
+        } else {
+            sectionHeadingsData = {};
+        }
+    } catch (error) {
+        console.warn('加载段落标题失败（可能文件不存在）:', error.message);
+        sectionHeadingsData = {};
+    }
+    return sectionHeadingsData;
+}
+
+// 获取某卷某章的段落标题
+function getChapterHeadings(bookName, chapter) {
+    if (!sectionHeadingsData || !sectionHeadingsData[bookName]) return [];
+    const chKey = String(chapter);
+    return sectionHeadingsData[bookName][chKey] || [];
+}
+
+// 显示建议列表
+function showSuggestions(matchedBooks) {
+    suggestions.innerHTML = '';
+    matchedBooks.forEach(book => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'suggestion-name';
+        nameSpan.textContent = book.name;
+        
+        const spacer = document.createElement('span');
+        spacer.className = 'suggestion-spacer';
+        
+        const codeSpan = document.createElement('span');
+        codeSpan.className = 'suggestion-code';
+        codeSpan.textContent = book.pinyin;
+        
+        item.appendChild(nameSpan);
+        item.appendChild(spacer);
+        item.appendChild(codeSpan);
+        
+        item.addEventListener('click', function() {
+            selectBook(book);
+        });
+        item.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            selectBook(book);
+        });
+        suggestions.appendChild(item);
+    });
+    suggestions.style.display = 'block';
+}
+
+// 选择经卷
+function selectBook(book) {
+    currentBook = book;
+    input.value = book.name;
+    inputState = 'chapter';
+    suggestions.style.display = 'none';
+    input.focus();
+    // 选择经卷后立即加载
+    loadBook(book.name);
+}
+
+// 显示经文
+async function displayVerse(bookName, chapter, startVerse, endVerse) {
+    result.innerHTML = '<p>加载中...</p>';
+    
+    const loaded = await loadBook(bookName);
+    
+    if (!loaded || !bibleData[bookName] || !bibleData[bookName][chapter]) {
+        result.innerHTML = '<p>未找到经文</p>';
+        copyBtn.style.display = 'none';
+        return;
+    }
+
+    result.innerHTML = '';
+    const chapterData = bibleData[bookName][chapter];
+    
+    // 加载段落标题数据
+    if (copySettings.showSectionTitles) {
+        await loadSectionHeadings();
+    }
+    const chapterHeadings = getChapterHeadings(bookName, chapter);
+    const headingVerseMap = {};  // verse -> title
+    // BibleGateway CUVMPS 只有 verse 1 缺 versenum 标签，后面 verse 全对
+    // 所以：如果第一个标题 verse=2，那它就是 verse 1 的标题，只减这一个
+    const sortedHeadings = [...chapterHeadings].sort((a, b) => a[0] - b[0]);
+    sortedHeadings.forEach(([v, t], idx) => {
+        if (idx === 0 && v === 2) {
+            headingVerseMap[1] = t;
+        } else {
+            headingVerseMap[v] = t;
+        }
+    });
+    
+    // 根据显示模式处理
+    if (copySettings.displayMode === 'paragraph') {
+        // 整段显示模式
+        result.classList.add('paragraph-mode');
+
+        // 收集所有节文本
+        const verseTexts = [];
+        const verseNumbers = [];
+
+        if (endVerse === 'end') {
+            for (let i = startVerse; i <= Object.keys(chapterData).length; i++) {
+                if (chapterData[i]) {
+                    verseTexts.push(chapterData[i]);
+                    verseNumbers.push(i);
+                }
+            }
+        } else {
+            for (let i = startVerse; i <= endVerse; i++) {
+                if (chapterData[i]) {
+                    verseTexts.push(chapterData[i]);
+                    verseNumbers.push(i);
+                }
+            }
+        }
+
+        // 使用跨节联合 Pretext 引擎渲染经文
+        let ghostContent = '';
+        
+        // 调用 Pretext 的跨节联合着色函数
+        const coloredFragments = typeof PretextBible !== 'undefined' && copySettings.enableSemanticColoring
+            ? PretextBible.colorizeVersesWithPretext(verseTexts, true, copySettings.enableNameUnderline)
+            : null;
+
+        for (let idx = 0; idx < verseNumbers.length; idx++) {
+            const i = verseNumbers[idx];
+
+            // 插入段落小标题
+            if (copySettings.showSectionTitles && headingVerseMap[i]) {
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'section-title';
+                titleDiv.textContent = headingVerseMap[i];
+                result.appendChild(titleDiv);
+            }
+
+            const verseElement = document.createElement('span');
+            verseElement.className = 'verse';
+
+            // 添加节号
+            const numberSup = document.createElement('sup');
+            numberSup.className = 'verse-number';
+            numberSup.textContent = i;
+            verseElement.appendChild(numberSup);
+
+            // 添加着色内容或纯文本
+            if (coloredFragments && coloredFragments[idx]) {
+                verseElement.appendChild(coloredFragments[idx].cloneNode(true));
+            } else {
+                verseElement.appendChild(document.createTextNode(chapterData[i]));
+            }
+
+            result.appendChild(verseElement);
+            ghostContent += `${i} ${chapterData[i]} `;
+        }
+
+        // 添加多层透字效果
+        if (copySettings.showGhostText) {
+            const offsets = [
+                { y: -32, x: -2 },  // 向上偏移一行，向左偏移2px
+                { y: 32, x: 2 },    // 向下偏移一行，向右偏移2px
+                { y: -16, x: 1 }    // 向上偏移半行，向右偏移1px
+            ];
+
+            for (let j = 0; j < 3; j++) {
+                const ghostText = document.createElement('div');
+                ghostText.className = 'ghost-text';
+                ghostText.textContent = ghostContent;
+                ghostText.style.transform = `translate(${offsets[j].x}px, ${offsets[j].y}px)`;
+                ghostText.style.opacity = 1 - j * 0.3;
+                result.insertBefore(ghostText, result.firstChild);
+            }
+        }
+    } else {
+        // 逐节显示模式
+        result.classList.remove('paragraph-mode');
+
+        // 收集所有节文本
+        const verseTexts = [];
+        const verseNumbers = [];
+
+        if (endVerse === 'end') {
+            for (let i = startVerse; i <= Object.keys(chapterData).length; i++) {
+                if (chapterData[i]) {
+                    verseTexts.push(chapterData[i]);
+                    verseNumbers.push(i);
+                }
+            }
+        } else {
+            for (let i = startVerse; i <= endVerse; i++) {
+                if (chapterData[i]) {
+                    verseTexts.push(chapterData[i]);
+                    verseNumbers.push(i);
+                }
+            }
+        }
+
+        // 使用跨节联合 Pretext 引擎渲染经文
+        const coloredFragments = typeof PretextBible !== 'undefined' && copySettings.enableSemanticColoring
+            ? PretextBible.colorizeVersesWithPretext(verseTexts, true, copySettings.enableNameUnderline)
+            : null;
+
+        for (let idx = 0; idx < verseNumbers.length; idx++) {
+            const i = verseNumbers[idx];
+
+            // 插入段落小标题
+            if (copySettings.showSectionTitles && headingVerseMap[i]) {
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'section-title';
+                titleDiv.textContent = headingVerseMap[i];
+                result.appendChild(titleDiv);
+            }
+
+            const verseElement = document.createElement('div');
+            verseElement.className = 'verse';
+
+            // 添加节号
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'verse-number';
+            numberSpan.textContent = i;
+            verseElement.appendChild(numberSpan);
+
+            // 添加着色内容或纯文本
+            if (coloredFragments && coloredFragments[idx]) {
+                verseElement.appendChild(coloredFragments[idx].cloneNode(true));
+            } else {
+                verseElement.appendChild(document.createTextNode(chapterData[i]));
+            }
+
+            result.appendChild(verseElement);
+        }
+    }
+
+    // 显示复制按钮和下载按钮
+    copyBtn.style.display = 'block';
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        downloadBtn.style.display = 'inline-block';
+    }
+    
+    // 更新全局状态（用于滑动切换章节）
+    currentBook = books.find(b => b.name === bookName);
+    currentChapter = chapter;
+    currentStartVerse = startVerse;
+    currentEndVerse = endVerse;
+}
+
+// 处理空格输入
+function handleSpaceInput(value) {
+    const upperValue = value.toUpperCase();
+    
+    // 检测到空格输入
+    if (value.includes(' ') && !previousValue.includes(' ')) {
+        if (inputState === 'book' && suggestions.style.display === 'block') {
+            const firstSuggestion = suggestions.querySelector('.suggestion-item');
+            if (firstSuggestion) {
+                const bookName = firstSuggestion.querySelector('.suggestion-name').textContent;
+                currentBook = books.find(b => b.name === bookName);
+                selectBook(currentBook);
+                return true;
+            }
+        } else if (inputState === 'chapter') {
+            const chapterValue = parseInt(input.value.replace(currentBook.name, '').trim());
+            if (!isNaN(chapterValue)) {
+                currentChapter = chapterValue;
+                // 移除空格后添加冒号
+                input.value = currentBook.name + chapterValue + ':';
+                inputState = 'verse';
+                return true;
+            }
+        } else if (inputState === 'verse') {
+            const verseValue = parseInt(input.value.split(':')[1].trim());
+            if (!isNaN(verseValue)) {
+                currentStartVerse = verseValue;
+                // 移除空格后添加横线
+                input.value = currentBook.name + currentChapter + ':' + verseValue + '-';
+                inputState = 'endVerse';
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// 输入处理
+function handleInput(e) {
+    const value = e.target.value;
+    const upperValue = value.toUpperCase();
+    
+    // 检查是否是完整的语音输入（只在完整时才解析）
+    if (isCompleteVoiceInput(value)) {
+        const voiceResult = parseVoiceInput(value);
+        if (voiceResult) {
+            currentBook = books.find(b => b.name === voiceResult.bookName);
+            currentChapter = voiceResult.chapter;
+            currentStartVerse = voiceResult.startVerse;
+            currentEndVerse = voiceResult.endVerse;
+            
+            // 更新输入框显示
+            if (voiceResult.startVerse === voiceResult.endVerse) {
+                input.value = voiceResult.bookName + voiceResult.chapter + ':' + voiceResult.startVerse;
+                inputState = 'verse';
+            } else {
+                input.value = voiceResult.bookName + voiceResult.chapter + ':' + voiceResult.startVerse + '-' + voiceResult.endVerse;
+                inputState = 'endVerse';
+            }
+            
+            // 显示经文
+            displayVerse(voiceResult.bookName, voiceResult.chapter, voiceResult.startVerse, voiceResult.endVerse);
+            suggestions.style.display = 'none';
+            return;
+        }
+    }
+    
+    // 处理空格输入（兼容手机输入法）
+    if (handleSpaceInput(value)) {
+        previousValue = input.value;
+        return;
+    }
+    
+    previousValue = value;
+    
+    if (value.includes(':')) {
+        if (value.includes('-')) {
+            if (inputState !== 'endVerse') {
+                inputState = 'endVerse';
+            }
+            const parts = value.split(':')[1].split('-');
+            if (parts[0] && !isNaN(parseInt(parts[0]))) {
+                currentStartVerse = parseInt(parts[0]);
+            }
+            if (parts[1] && !isNaN(parseInt(parts[1]))) {
+                currentEndVerse = parseInt(parts[1]);
+                if (currentBook && currentChapter && currentStartVerse && currentEndVerse) {
+                    displayVerse(currentBook.name, currentChapter, currentStartVerse, currentEndVerse);
+                }
+            }
+        } else {
+            if (inputState === 'endVerse') {
+                currentEndVerse = null;
+            }
+            inputState = 'verse';
+            const versePart = value.split(':')[1];
+            if (versePart && !isNaN(parseInt(versePart))) {
+                currentStartVerse = parseInt(versePart);
+                if (currentBook && currentChapter && currentStartVerse) {
+                    displayVerse(currentBook.name, currentChapter, currentStartVerse, currentStartVerse);
+                }
+            }
+        }
+    } else if (currentBook && value.startsWith(currentBook.name)) {
+        inputState = 'chapter';
+        const chapterPart = value.substring(currentBook.name.length).trim();
+        
+        // 检测章后输入z显示整章
+        if (chapterPart.toUpperCase().endsWith('Z')) {
+            const chapterValue = parseInt(chapterPart.substring(0, chapterPart.length - 1));
+            if (!isNaN(chapterValue)) {
+                currentChapter = chapterValue;
+                displayVerse(currentBook.name, currentChapter, 1, 'end');
+            }
+        } else if (chapterPart && !isNaN(parseInt(chapterPart))) {
+            currentChapter = parseInt(chapterPart);
+        }
+    }
+    
+    if (upperValue.length === 0) {
+        suggestions.style.display = 'none';
+        currentBook = null;
+        currentChapter = null;
+        currentStartVerse = null;
+        currentEndVerse = null;
+        inputState = 'book';
+        result.innerHTML = '';
+        return;
+    }
+
+    const matchedBooks = books.filter(book => {
+        return book.pinyin.toUpperCase().startsWith(upperValue) || 
+               book.fullPinyin.toUpperCase().startsWith(upperValue) ||
+               book.name.startsWith(value) ||
+               book.short.startsWith(value);
+    });
+
+    if (matchedBooks.length > 0 && inputState === 'book') {
+        showSuggestions(matchedBooks);
+    } else {
+        suggestions.style.display = 'none';
+    }
+}
+
+// 键盘事件处理
+function handleKeydown(e) {
+    if (e.key === 'Enter') {
+        if (inputState === 'verse' && currentBook && currentChapter && currentStartVerse) {
+            displayVerse(currentBook.name, currentChapter, currentStartVerse, currentStartVerse);
+        } else if (inputState === 'endVerse' && currentBook && currentChapter && currentStartVerse && currentEndVerse) {
+            displayVerse(currentBook.name, currentChapter, currentStartVerse, currentEndVerse);
+        }
+    } else if (e.key === ' ') {
+        // 电脑端空格键处理
+        if (inputState === 'book' && suggestions.style.display === 'block') {
+            const firstSuggestion = suggestions.querySelector('.suggestion-item');
+            if (firstSuggestion) {
+                const bookName = firstSuggestion.textContent;
+                currentBook = books.find(b => b.name === bookName);
+                selectBook(currentBook);
+                e.preventDefault();
+            }
+        } else if (inputState === 'chapter') {
+            const chapterValue = parseInt(input.value.replace(currentBook.name, '').trim());
+            if (!isNaN(chapterValue)) {
+                currentChapter = chapterValue;
+                input.value = currentBook.name + chapterValue + ':';
+                inputState = 'verse';
+                e.preventDefault();
+            }
+        } else if (inputState === 'verse') {
+            const verseValue = parseInt(input.value.split(':')[1].trim());
+            if (!isNaN(verseValue)) {
+                currentStartVerse = verseValue;
+                input.value = input.value + '-';
+                inputState = 'endVerse';
+                e.preventDefault();
+            }
+        }
+    } else if (e.key === 'Backspace') {
+        setTimeout(() => {
+            const value = input.value;
+            if (inputState === 'endVerse' && !value.includes('-')) {
+                inputState = 'verse';
+                currentEndVerse = null;
+                if (currentBook && currentChapter && currentStartVerse) {
+                    displayVerse(currentBook.name, currentChapter, currentStartVerse, currentStartVerse);
+                }
+            }
+        }, 0);
+    }
+}
+
+// 点击外部关闭建议列表
+function handleClickOutside(e) {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+        suggestions.style.display = 'none';
+    }
+}
+
+// 复制经文
+function copyVerse() {
+    if (!currentBook || !currentChapter) return;
+    
+    // 获取经卷名称
+    const bookName = copySettings.shortBookName ? currentBook.short : currentBook.name;
+    
+    // 构建引用格式
+    const brackets = copySettings.bracketStyle;
+    let reference = `${brackets[0]}${bookName}${currentChapter}`;
+    if (currentEndVerse === 'end') {
+        reference += `:1-${Object.keys(bibleData[currentBook.name][currentChapter]).length}`;
+    } else if (!currentEndVerse || currentStartVerse === currentEndVerse) {
+        reference += `:${currentStartVerse}`;
+    } else {
+        reference += `:${currentStartVerse}-${currentEndVerse}`;
+    }
+    reference += brackets[1];
+    
+    // 构建经文内容
+    let content = '';
+    const chapterData = bibleData[currentBook.name][currentChapter];
+    const verses = [];
+    
+    if (currentEndVerse === 'end') {
+        for (let i = 1; i <= Object.keys(chapterData).length; i++) {
+            if (chapterData[i]) {
+                let verseText = '';
+                if (copySettings.withVerseNumbers) {
+                    verseText += `${i} `;
+                }
+                verseText += chapterData[i];
+                verses.push(verseText);
+            }
+        }
+    } else {
+        const endVerse = currentEndVerse || currentStartVerse;
+        for (let i = currentStartVerse; i <= endVerse; i++) {
+            if (chapterData[i]) {
+                let verseText = '';
+                if (copySettings.withVerseNumbers) {
+                    verseText += `${i} `;
+                }
+                verseText += chapterData[i];
+                verses.push(verseText);
+            }
+        }
+    }
+    
+    // 处理换行
+    if (copySettings.eachVerseNewline) {
+        content = verses.join('\n');
+    } else {
+        content = verses.join('');
+    }
+    
+    // 组合完整内容
+    let fullContent = '';
+    switch (copySettings.referencePosition) {
+        case 'single-top':
+            fullContent = `${reference}\n${content}`;
+            break;
+        case 'top':
+            fullContent = `${reference} ${content}`;
+            break;
+        case 'bottom':
+            fullContent = `${content}${reference}`;
+            break;
+        case 'single-bottom':
+            fullContent = `${content}\n${reference}`;
+            break;
+        default:
+            fullContent = `${reference}\n${content}`;
+    }
+    
+    // 复制到剪贴板
+    navigator.clipboard.writeText(fullContent).then(() => {
+        // 显示复制成功提示
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '复制成功！';
+        copyBtn.style.backgroundColor = '#45a049';
+        
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.style.backgroundColor = '#4CAF50';
+        }, 2000);
+    }).catch(err => {
+        console.error('复制失败:', err);
+        copyBtn.textContent = '复制失败';
+        copyBtn.style.backgroundColor = '#d32f2f';
+        
+        setTimeout(() => {
+            copyBtn.textContent = '复制经文';
+            copyBtn.style.backgroundColor = '#4CAF50';
+        }, 2000);
+    });
+}
+
+// 下载经文为图片
+async function downloadAsImage() {
+    if (!currentBook || !currentChapter) return;
+
+    const downloadBtn = document.getElementById('download-btn');
+    const originalText = downloadBtn.textContent;
+    downloadBtn.textContent = '生成中...';
+    downloadBtn.disabled = true;
+
+    try {
+        // 检查 html2canvas 是否可用
+        if (typeof html2canvas === 'undefined') {
+            throw new Error('html2canvas 库未加载');
+        }
+
+        // 根据设备宽度自适应截图区域宽度和边距
+        const screenWidth = window.innerWidth;
+        let imageWidth, paddingY, paddingX;
+        if (screenWidth <= 480) {
+            imageWidth = Math.min(380, screenWidth - 40);
+            paddingY = 40;
+            paddingX = 25;
+        } else if (screenWidth <= 768) {
+            imageWidth = Math.min(600, screenWidth - 80);
+            paddingY = 50;
+            paddingX = 35;
+        } else {
+            imageWidth = Math.min(850, screenWidth - 160);
+            paddingY = 60;
+            paddingX = 55;
+        }
+
+        // 创建截图区域（包含搜索栏和经文显示区域）
+        const captureArea = document.createElement('div');
+        captureArea.style.cssText = `
+            background: linear-gradient(to bottom, #FFFFFF, #FBF4E2);
+            padding: ${paddingY}px ${paddingX}px;
+            border-radius: 10px;
+            width: ${imageWidth}px;
+            font-family: 'SimSun', '宋体', serif;
+        `;
+
+        // 标题始终使用全名
+        const bookName = currentBook.name;
+        let verseRange = '';
+        if (currentEndVerse === 'end') {
+            const chapterData = bibleData[currentBook.name][currentChapter];
+            verseRange = `章:1-${Object.keys(chapterData).length}节`;
+        } else if (!currentEndVerse || currentStartVerse === currentEndVerse) {
+            verseRange = `章:${currentStartVerse}节`;
+        } else {
+            verseRange = `章:${currentStartVerse}-${currentEndVerse}节`;
+        }
+
+        let titleFontSize;
+        if (screenWidth <= 480) {
+            titleFontSize = 20;
+        } else if (screenWidth <= 768) {
+            titleFontSize = 22;
+        } else {
+            titleFontSize = 24;
+        }
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = `
+            text-align: center;
+            color: #8B0000;
+            font-size: ${titleFontSize}px;
+            font-weight: bold;
+            margin-bottom: ${Math.round(titleFontSize * 1.4)}px;
+            padding-bottom: ${Math.round(titleFontSize * 0.7)}px;
+            border-bottom: 2px solid rgba(139, 0, 0, 0.2);
+            font-family: 'KaiTi', '楷体', serif;
+            letter-spacing: 2px;
+            line-height: 1.4;
+        `;
+        titleDiv.textContent = `${bookName}${currentChapter}${verseRange}`;
+
+        // 克隆经文显示区域
+        const resultClone = document.getElementById('result').cloneNode(true);
+        resultClone.style.cssText = `
+            background: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            mix-blend-mode: normal;
+        `;
+        // 移除透字效果的 ghost-text 元素
+        const ghostElements = resultClone.querySelectorAll('.ghost-text');
+        ghostElements.forEach(el => el.remove());
+        // 克隆内容边距
+        resultClone.style.padding = '10px 0';
+
+        captureArea.appendChild(titleDiv);
+        captureArea.appendChild(resultClone);
+
+        // 临时添加到页面以进行渲染
+        captureArea.style.position = 'absolute';
+        captureArea.style.left = '-9999px';
+        document.body.appendChild(captureArea);
+
+        // 使用 html2canvas 截图
+        const canvas = await html2canvas(captureArea, {
+            backgroundColor: '#FBF4E2',
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+        // 移除临时元素
+        document.body.removeChild(captureArea);
+
+        // 创建下载链接
+        const link = document.createElement('a');
+        link.download = `${bookName}_${currentChapter}${verseRange}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // 显示成功提示
+        downloadBtn.textContent = '下载成功！';
+        downloadBtn.style.background = 'linear-gradient(135deg, #059669 0%, #10B981 100%)';
+
+        setTimeout(() => {
+            downloadBtn.textContent = originalText;
+            downloadBtn.style.background = '';
+            downloadBtn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('下载失败:', error);
+        downloadBtn.textContent = '下载失败';
+        downloadBtn.style.background = 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)';
+
+        setTimeout(() => {
+            downloadBtn.textContent = originalText;
+            downloadBtn.style.background = '';
+            downloadBtn.disabled = false;
+        }, 2000);
+    }
+}
+
+// ============================================================
+// 右侧字母轴 + 书卷章节选择
+// ============================================================
+
+// 每卷章节数
+const BOOK_CHAPTER_COUNTS = {
+    "创世纪": 50, "出埃及记": 40, "利未记": 27, "民数记": 36, "申命记": 34,
+    "约书亚记": 24, "士师记": 21, "路得记": 4, "撒母耳记上": 31, "撒母耳记下": 24,
+    "列王纪上": 22, "列王纪下": 25, "历代志上": 29, "历代志下": 36,
+    "以斯拉记": 10, "尼希米记": 13, "以斯帖记": 10, "约伯记": 42, "诗篇": 150,
+    "箴言": 31, "传道书": 12, "雅歌": 8, "以赛亚书": 66, "耶利米书": 52,
+    "耶利米哀歌": 5, "以西结书": 48, "但以理书": 12, "何西阿书": 14, "约珥书": 3,
+    "阿摩司书": 9, "俄巴底亚书": 1, "约拿书": 4, "弥迦书": 7, "那鸿书": 3,
+    "哈巴谷书": 3, "西番雅书": 3, "哈该书": 2, "撒迦利亚书": 14, "玛拉基书": 4,
+    "马太福音": 28, "马可福音": 16, "路加福音": 24, "约翰福音": 21, "使徒行传": 28,
+    "罗马书": 16, "哥林多前书": 16, "哥林多后书": 13, "加拉太书": 6, "以弗所书": 6,
+    "腓立比书": 4, "歌罗西书": 4, "帖撒罗尼迦前书": 5, "帖撒罗尼迦后书": 3,
+    "提摩太前书": 6, "提摩太后书": 4, "提多书": 3, "腓利门书": 1, "希伯来书": 13,
+    "雅各书": 5, "彼得前书": 5, "彼得后书": 3, "约翰一书": 5, "约翰二书": 1,
+    "约翰三书": 1, "犹大书": 1, "启示录": 22,
+};
+
+// 构建拼音首字母 → 书卷列表的映射
+const LETTER_TO_BOOKS = {};
+books.forEach(book => {
+    const firstLetter = (book.fullPinyin || book.pinyin || '').charAt(0).toUpperCase();
+    if (!firstLetter) return;
+    if (!LETTER_TO_BOOKS[firstLetter]) LETTER_TO_BOOKS[firstLetter] = [];
+    LETTER_TO_BOOKS[firstLetter].push(book);
+});
+
+const ALL_LETTERS = Object.keys(LETTER_TO_BOOKS).sort();
+
+// 渲染字母轴（只显示有书卷的字母）
+function initAlphaSidebar() {
+    const bar = document.getElementById('alpha-bar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    ALL_LETTERS.forEach(letter => {
+        const div = document.createElement('div');
+        div.className = 'alpha-item has-books';
+        div.textContent = letter;
+        div.dataset.letter = letter;
+        div.addEventListener('click', () => openPicker(letter));
+        bar.appendChild(div);
+    });
+    
+    // 触摸滑动快速定位
+    const sidebar = document.getElementById('alpha-sidebar');
+    
+    function handleTouch(e) {
+        const point = e.touches ? e.touches[0] : e;
+        const rect = bar.getBoundingClientRect();
+        const relativeY = point.clientY - rect.top;
+        const items = bar.querySelectorAll('.alpha-item');
+        const totalHeight = rect.height;
+        const letterIndex = Math.floor((relativeY / totalHeight) * ALL_LETTERS.length);
+        const letter = ALL_LETTERS[Math.max(0, Math.min(ALL_LETTERS.length - 1, letterIndex))];
+        items.forEach(i => i.classList.toggle('active', i.dataset.letter === letter));
+        openPicker(letter, true);
+    }
+    
+    sidebar.addEventListener('touchstart', handleTouch, { passive: true });
+    sidebar.addEventListener('touchmove', handleTouch, { passive: true });
+    sidebar.addEventListener('mousemove', (e) => {
+        if (e.buttons === 1) handleTouch(e);
+    });
+}
+
+// 打开面板 — 显示某字母下的书卷列表
+let pickerState = { letter: null, view: 'books', currentBook: null };
+
+function openPicker(letter, fromTouch) {
+    const panel = document.getElementById('picker-panel');
+    const header = document.getElementById('picker-current-letter');
+    const body = document.getElementById('picker-body');
+    
+    pickerState = { letter, view: 'books', currentBook: null };
+    header.textContent = letter;
+    
+    const list = LETTER_TO_BOOKS[letter] || [];
+    body.innerHTML = '';
+    
+    const booksDiv = document.createElement('div');
+    booksDiv.className = 'picker-books';
+    list.forEach(book => {
+        const item = document.createElement('div');
+        item.className = 'picker-book-item';
+        item.innerHTML = `<span>${book.name}</span><span class="book-chapter-count">${BOOK_CHAPTER_COUNTS[book.name] || '?'}章</span>`;
+        item.addEventListener('click', (e) => { e.stopPropagation(); showChapters(book); });
+        item.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); showChapters(book); });
+        booksDiv.appendChild(item);
+    });
+    body.appendChild(booksDiv);
+    
+    panel.classList.add('visible');
+}
+
+// 显示章节网格 + 拖动选择 + 预加载经卷数据
+function showChapters(book) {
+    const panel = document.getElementById('picker-panel');
+    const header = document.getElementById('picker-current-letter');
+    const body = document.getElementById('picker-body');
+    
+    pickerState.view = 'chapters';
+    pickerState.currentBook = book;
+    header.textContent = book.name;
+    panel.classList.add('visible');  // 双保险：确保面板保持打开
+    
+    // 预加载经卷数据（异步不阻塞 UI）
+    loadBook(book.name);
+    loadSectionHeadings();
+    
+    body.innerHTML = '';
+    
+    // 返回按钮
+    const back = document.createElement('div');
+    back.className = 'picker-back';
+    back.textContent = '← 返回书卷列表';
+    back.addEventListener('click', () => openPicker(pickerState.letter));
+    body.appendChild(back);
+    
+    // 当前选中章节高亮（拖动时实时预览）
+    const hint = document.createElement('div');
+    hint.className = 'picker-hint';
+    hint.style.cssText = 'text-align:center;padding:6px;font-size:12px;color:#9C2542;opacity:0;transition:opacity 0.15s';
+    body.appendChild(hint);
+    
+    // 章节网格
+    const count = BOOK_CHAPTER_COUNTS[book.name] || 1;
+    const grid = document.createElement('div');
+    grid.className = 'picker-chapters';
+    const chapterBtns = [];
+    
+    for (let c = 1; c <= count; c++) {
+        const btn = document.createElement('div');
+        btn.className = 'picker-chapter-item';
+        btn.textContent = c;
+        btn.dataset.chapter = c;
+        grid.appendChild(btn);
+        chapterBtns.push(btn);
+    }
+    body.appendChild(grid);
+    
+    // ============ 拖动选择逻辑 ============
+    let isDragging = false;
+    let selectedChapter = null;
+    
+    function findChapterAtPoint(x, y) {
+        for (const btn of chapterBtns) {
+            const r = btn.getBoundingClientRect();
+            if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                return btn;
+            }
+        }
+        return null;
+    }
+    
+    function highlight(btn) {
+        chapterBtns.forEach(b => b.classList.remove('active'));
+        if (btn) {
+            btn.classList.add('active');
+            selectedChapter = parseInt(btn.dataset.chapter);
+            hint.textContent = `选择第 ${selectedChapter} 章`;
+            hint.style.opacity = '1';
+        }
+    }
+    
+    function startDrag(x, y) {
+        isDragging = true;
+        const btn = findChapterAtPoint(x, y);
+        highlight(btn);
+    }
+    
+    function onDrag(x, y) {
+        if (!isDragging) return;
+        const btn = findChapterAtPoint(x, y);
+        if (btn && !btn.classList.contains('active')) {
+            highlight(btn);
+        }
+    }
+    
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (selectedChapter !== null) {
+            const ch = selectedChapter;
+            closePicker();
+            setTimeout(() => displayVerse(book.name, ch, 1, 'end'), 150);
+        }
+        selectedChapter = null;
+        hint.style.opacity = '0';
+    }
+    
+    // 绑定事件
+    grid.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        startDrag(t.clientX, t.clientY);
+    }, { passive: true });
+    
+    grid.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        onDrag(t.clientX, t.clientY);
+    }, { passive: true });
+    
+    grid.addEventListener('touchend', endDrag);
+    
+    grid.addEventListener('mousedown', (e) => {
+        startDrag(e.clientX, e.clientY);
+    });
+    
+    grid.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        onDrag(e.clientX, e.clientY);
+    });
+    
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+    // 全局 touchend 防止手指滑出 grid 后丢失事件
+}
+
+function closePicker() {
+    document.getElementById('picker-panel').classList.remove('visible');
+    document.querySelectorAll('.alpha-item.active').forEach(el => el.classList.remove('active'));
+}
+
+// 绑定关闭按钮
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'picker-close' || 
+        (e.target.closest('.picker-panel') === null && 
+         e.target.closest('.alpha-sidebar') === null &&
+         document.getElementById('picker-panel').classList.contains('visible'))) {
+        closePicker();
+    }
+});
+
+// 初始化字母轴
+initAlphaSidebar();
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    input = document.getElementById('bible-input');
+    suggestions = document.getElementById('suggestions');
+    result = document.getElementById('result');
+    copyBtn = document.getElementById('copy-btn');
+    
+    const helpBtn = document.getElementById('help-btn');
+    const helpModal = document.getElementById('help-modal');
+    const closeBtn = document.getElementById('close-btn');
+    
+    const settingBtn = document.getElementById('setting-btn');
+    const settingModal = document.getElementById('setting-modal');
+    const settingCloseBtn = document.getElementById('setting-close-btn');
+    const settingSaveBtn = document.getElementById('setting-save-btn');
+    
+    // 加载保存的设置
+    loadSettings();
+    
+    // === 滑动切换章节 ===
+    let swipeStartX = 0, swipeStartY = 0, swipeActive = false;
+    const SWIPE_THRESHOLD = 50;  // px
+    
+    result.addEventListener('touchstart', (e) => {
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+        swipeActive = true;
+    }, { passive: true });
+    
+    result.addEventListener('touchend', (e) => {
+        if (!swipeActive) return;
+        swipeActive = false;
+        const dx = e.changedTouches[0].clientX - swipeStartX;
+        const dy = e.changedTouches[0].clientY - swipeStartY;
+        
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+            navigateChapter(dx < 0 ? +1 : -1);  // 左滑=下一章，右滑=上一章
+        }
+    }, { passive: true });
+    
+    // 桌面端键盘左右箭头
+    document.addEventListener('keydown', (e) => {
+        if (document.activeElement === input) return;  // 输入框里不触发
+        if (!currentBook || !currentChapter) return;
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateChapter(-1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); navigateChapter(+1); }
+    });
+    
+    // 切换上/下一章（仅当前书卷内）
+    async function navigateChapter(delta) {
+        if (!currentBook || !currentChapter) return;
+        
+        // 章节数从 bibleData 取（books 数组本身没有 chapters 属性）
+        await loadBook(currentBook.name);
+        const chapterKeys = bibleData[currentBook.name] ? Object.keys(bibleData[currentBook.name]) : [];
+        const maxChapter = chapterKeys.length;
+        if (maxChapter === 0) return;
+        
+        const newChapter = currentChapter + delta;
+        if (newChapter < 1 || newChapter > maxChapter) return;  // 到边界就不动
+        
+        // 更新输入框显示
+        input.value = currentBook.name + newChapter + 'z';
+        inputState = 'endVerse';
+        
+        displayVerse(currentBook.name, newChapter, 1, 'end');
+        
+        // 滚动到顶部
+        result.scrollTop = 0;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    input.addEventListener('input', handleInput);
+    input.addEventListener('keydown', handleKeydown);
+    document.addEventListener('click', handleClickOutside);
+    
+    // 移动端触摸事件
+    document.addEventListener('touchend', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    // 帮助按钮点击事件
+    helpBtn.addEventListener('click', function() {
+        helpModal.style.display = 'block';
+    });
+    
+    // 关闭按钮点击事件
+    closeBtn.addEventListener('click', function() {
+        helpModal.style.display = 'none';
+    });
+    
+    // 点击模态框外部关闭
+    helpModal.addEventListener('click', function(e) {
+        if (e.target === helpModal) {
+            helpModal.style.display = 'none';
+        }
+    });
+    
+    // ESC键关闭模态框
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && helpModal.style.display === 'block') {
+            helpModal.style.display = 'none';
+        }
+    });
+    
+    // 复制按钮点击事件
+    copyBtn.addEventListener('click', copyVerse);
+
+    // 下载图片按钮点击事件
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadAsImage);
+    }
+    
+    // 设置按钮点击事件
+    settingBtn.addEventListener('click', function() {
+        settingModal.style.display = 'block';
+        // 填充当前设置
+        document.getElementById('setting-display-mode').value = copySettings.displayMode;
+        document.getElementById('setting-show-ghost-text').checked = copySettings.showGhostText;
+        document.getElementById('setting-enable-semantic-coloring').checked = copySettings.enableSemanticColoring;
+        document.getElementById('setting-enable-name-underline').checked = copySettings.enableNameUnderline;
+        document.getElementById('setting-show-section-titles').checked = copySettings.showSectionTitles;
+        document.getElementById('setting-font-size').value = copySettings.fontSize || 16;
+        document.getElementById('setting-with-verse-numbers').checked = copySettings.withVerseNumbers;
+        document.getElementById('setting-each-verse-newline').checked = copySettings.eachVerseNewline;
+        document.getElementById('setting-short-book-name').checked = copySettings.shortBookName;
+        document.getElementById('setting-reference-position').value = copySettings.referencePosition;
+        document.getElementById('setting-bracket-style').value = copySettings.bracketStyle;
+    });
+    
+    // 关闭设置模态框
+    settingCloseBtn.addEventListener('click', function() {
+        settingModal.style.display = 'none';
+    });
+    
+    // 保存设置
+    settingSaveBtn.addEventListener('click', function() {
+        copySettings.displayMode = document.getElementById('setting-display-mode').value;
+        copySettings.showGhostText = document.getElementById('setting-show-ghost-text').checked;
+        copySettings.enableSemanticColoring = document.getElementById('setting-enable-semantic-coloring').checked;
+        copySettings.enableNameUnderline = document.getElementById('setting-enable-name-underline').checked;
+        copySettings.showSectionTitles = document.getElementById('setting-show-section-titles').checked;
+        copySettings.fontSize = parseInt(document.getElementById('setting-font-size').value) || 16;
+        copySettings.withVerseNumbers = document.getElementById('setting-with-verse-numbers').checked;
+        copySettings.eachVerseNewline = document.getElementById('setting-each-verse-newline').checked;
+        copySettings.shortBookName = document.getElementById('setting-short-book-name').checked;
+        copySettings.referencePosition = document.getElementById('setting-reference-position').value;
+        copySettings.bracketStyle = document.getElementById('setting-bracket-style').value;
+
+        // 应用字号设置
+        applyFontSize(copySettings.fontSize);
+
+        saveSettings();
+        settingModal.style.display = 'none';
+
+        // 如果当前有显示经文，重新显示
+        if (currentBook && currentChapter && currentStartVerse) {
+            displayVerse(currentBook.name, currentChapter, currentStartVerse, currentEndVerse);
+        }
+    });
+    
+    // 点击设置模态框外部关闭
+    settingModal.addEventListener('click', function(e) {
+        if (e.target === settingModal) {
+            settingModal.style.display = 'none';
+        }
+    });
+});
+
+// 保存设置到本地存储
+function saveSettings() {
+    localStorage.setItem('bibleCopySettings', JSON.stringify(copySettings));
+}
+
+// 从本地存储加载设置
+function loadSettings() {
+    const saved = localStorage.getItem('bibleCopySettings');
+    if (saved) {
+        try {
+            const loaded = JSON.parse(saved);
+            copySettings = { ...copySettings, ...loaded };
+        } catch (e) {
+            console.error('加载设置失败:', e);
+        }
+    }
+
+    // 应用字号设置
+    if (copySettings.fontSize) {
+        applyFontSize(copySettings.fontSize);
+    }
+}
+
+// 应用字号设置到经文显示区域
+function applyFontSize(size) {
+    const resultContainer = document.getElementById('result');
+    if (resultContainer) {
+        resultContainer.style.fontSize = size + 'px';
+    }
+
+    // 同时更新 .verse 的字号
+    const verses = document.querySelectorAll('.verse');
+    verses.forEach(verse => {
+        verse.style.fontSize = size + 'px';
+    });
+}

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>排班日历</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 30px 16px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    padding: 28px;
+    width: 100%;
+    max-width: 460px;
+  }
+  h1 {
+    font-size: 22px;
+    text-align: center;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .weekdays, .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .weekdays { margin-bottom: 6px; }
+  .weekdays div {
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+    padding: 6px 0;
+  }
+  .day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #e8e8e8;
+    background: #fafafa;
+    transition: all .15s;
+  }
+  .day:hover { border-color: #4096ff; color: #4096ff; }
+  .day.empty { background: transparent; border: none; cursor: default; }
+  .day.selected {
+    background: #1677ff;
+    border-color: #1677ff;
+    color: #fff;
+    font-weight: bold;
+  }
+  .result {
+    margin-top: 20px;
+    padding: 12px;
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #333;
+    min-height: 46px;
+    word-break: break-all;
+  }
+  .result .label { color: #52c41a; font-size: 13px; margin-right: 6px; }
+  .btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .reverse-box {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .reverse-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .reverse-input:focus { border-color: #1677ff; }
+  .btn-reverse { background: #fa8c16; color: #fff; white-space: nowrap; width: auto; padding: 10px 18px; font-size: 14px; }
+  .btn-reverse:hover { background: #ffa940; }
+  .btn-copy { background: #1677ff; color: #fff; }
+  .btn-copy:hover { background: #4096ff; }
+  .btn-download { background: #52c41a; color: #fff; margin-top: 10px; }
+  .btn-download:hover { background: #73d13d; }
+  .btn-clear { background: #f5f5f5; color: #666; margin-top: 10px; }
+  .btn-clear:hover { background: #e8e8e8; }
+  .toast {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="title"></h1>
+  <div class="subtitle">点击或按住拖动选择日期</div>
+  <div class="weekdays">
+    <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+  </div>
+  <div class="days" id="days"></div>
+  <div class="result" id="result"><span class="label">已选：</span>暂无</div>
+  <div class="reverse-box">
+    <input class="reverse-input" id="reverseInput" placeholder="输入日期，如：4，8，11，18" autocomplete="off">
+    <button class="btn btn-reverse" id="reverseBtn">反向标注</button>
+  </div>
+  <button class="btn btn-copy" id="copyBtn">复制排班</button>
+  <button class="btn btn-download" id="downloadBtn">下载排班图</button>
+  <button class="btn btn-clear" id="clearBtn">清空选择</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // 计算下个月
+  const now = new Date();
+  const year = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
+  const month = now.getMonth() === 11 ? 0 : now.getMonth() + 1; // 0-based
+
+  document.getElementById('title').textContent = year + '年' + (month + 1) + '月排班';
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // 周一开头：getDay() 周日=0，转换为 周一=0 ... 周日=6
+  const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+
+  const daysEl = document.getElementById('days');
+  const resultEl = document.getElementById('result');
+  const selected = new Set();
+
+  let isDragging = false;
+  let dragSelect = true; // true=拖动选中，false=拖动取消
+
+  function applyDrag(cell, d) {
+    if (dragSelect && !selected.has(d)) {
+      selected.add(d);
+      cell.classList.add('selected');
+      renderResult();
+    } else if (!dragSelect && selected.has(d)) {
+      selected.delete(d);
+      cell.classList.remove('selected');
+      renderResult();
+    }
+  }
+
+  for (let i = 0; i < firstWeekday; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'day empty';
+    daysEl.appendChild(blank);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    cell.textContent = d;
+    cell.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // 防止拖动时选中文字
+      isDragging = true;
+      dragSelect = !selected.has(d);
+      applyDrag(cell, d);
+    });
+    cell.addEventListener('mouseenter', () => {
+      if (isDragging) applyDrag(cell, d);
+    });
+    cell.addEventListener('touchstart', () => {
+      isDragging = true;
+      dragSelect = !selected.has(d);
+      applyDrag(cell, d);
+    }, { passive: true });
+    daysEl.appendChild(cell);
+  }
+
+  // 手机端滑动多选
+  daysEl.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el && el.classList.contains('day') && !el.classList.contains('empty')) {
+      applyDrag(el, Number(el.textContent));
+    }
+  }, { passive: false });
+
+  document.addEventListener('mouseup', () => isDragging = false);
+  document.addEventListener('touchend', () => isDragging = false);
+
+  function getSorted() {
+    return [...selected].sort((a, b) => a - b);
+  }
+
+  function renderResult() {
+    const list = getSorted();
+    resultEl.innerHTML = list.length
+      ? '<span class="label">已选 ' + list.length + ' 天：</span>' + list.join('，')
+      : '<span class="label">已选：</span>暂无';
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const list = getSorted();
+    if (!list.length) { showToast('请先选择日期'); return; }
+    const text = list.join('，');
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('已复制：' + text);
+    } catch (e) {
+      // 兼容旧浏览器
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('已复制：' + text);
+    }
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    selected.clear();
+    document.querySelectorAll('.day.selected').forEach(el => el.classList.remove('selected'));
+    renderResult();
+  });
+
+  // 反向标注：输入日期串自动选中
+  document.getElementById('reverseBtn').addEventListener('click', () => {
+    const raw = document.getElementById('reverseInput').value.trim();
+    if (!raw) { showToast('请输入日期'); return; }
+    // 提取所有数字（支持中英文逗号、空格、顿号等分隔）
+    const nums = raw.match(/\d+/g);
+    if (!nums) { showToast('未识别到日期数字'); return; }
+    const invalid = [];
+    const valid = [];
+    nums.forEach(n => {
+      const d = Number(n);
+      if (d >= 1 && d <= daysInMonth) {
+        valid.push(d);
+      } else {
+        invalid.push(d);
+      }
+    });
+    // 清空当前选择，重新标注
+    selected.clear();
+    document.querySelectorAll('.day.selected').forEach(el => el.classList.remove('selected'));
+    valid.forEach(d => {
+      selected.add(d);
+      const cells = document.querySelectorAll('.day');
+      cells.forEach(cell => {
+        if (Number(cell.textContent) === d && !cell.classList.contains('empty')) {
+          cell.classList.add('selected');
+        }
+      });
+    });
+    renderResult();
+    if (invalid.length) {
+      showToast('已标注 ' + valid.length + ' 天，' + invalid.length + ' 个无效日期被忽略');
+    } else {
+      showToast('已标注 ' + valid.length + ' 天');
+    }
+  });
+
+  // 回车也能触发反向标注
+  document.getElementById('reverseInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('reverseBtn').click();
+  });
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function wrapText(ctx, text, maxWidth) {
+    const lines = [];
+    let line = '';
+    for (const ch of text) {
+      if (line && ctx.measureText(line + ch).width > maxWidth) {
+        lines.push(line);
+        line = ch;
+      } else {
+        line += ch;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // 下载排班图
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const scale = 2; // 2倍清晰度
+    const W = 700, pad = 30, gap = 8;
+    const cell = (W - pad * 2 - gap * 6) / 7;
+    const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
+    const titleH = 50, weekH = 40, summaryPad = 20;
+    const font = '"Microsoft YaHei", "PingFang SC", sans-serif';
+
+    const list = getSorted();
+    const summary = list.length ? '已选 ' + list.length + ' 天：' + list.join('，') : '未选择日期';
+
+    const cv = document.createElement('canvas');
+    const ctx = cv.getContext('2d');
+    const summaryFont = '16px ' + font;
+    ctx.font = summaryFont;
+    const lines = wrapText(ctx, summary, W - pad * 2);
+    const summaryH = lines.length * 24 + summaryPad;
+
+    const gridH = rows * cell + (rows - 1) * gap;
+    const H = pad + titleH + weekH + gridH + summaryH + pad;
+    cv.width = W * scale;
+    cv.height = H * scale;
+    ctx.scale(scale, scale);
+
+    // 背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 标题
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 26px ' + font;
+    ctx.fillText(year + '年' + (month + 1) + '月排班', W / 2, pad + titleH / 2);
+
+    // 星期头
+    ctx.fillStyle = '#999';
+    ctx.font = '14px ' + font;
+    ['一','二','三','四','五','六','日'].forEach((w, i) => {
+      ctx.fillText(w, pad + i * (cell + gap) + cell / 2, pad + titleH + weekH / 2);
+    });
+
+    // 日期格子
+    const gridTop = pad + titleH + weekH;
+    let d = 1;
+    for (let r = 0; r < rows && d <= daysInMonth; r++) {
+      for (let c = 0; c < 7 && d <= daysInMonth; c++) {
+        if (r * 7 + c < firstWeekday) continue;
+        const x = pad + c * (cell + gap);
+        const y = gridTop + r * (cell + gap);
+        const isSel = selected.has(d);
+        roundRect(ctx, x, y, cell, cell, 8);
+        ctx.fillStyle = isSel ? '#1677ff' : '#fafafa';
+        ctx.fill();
+        if (!isSel) {
+          ctx.strokeStyle = '#e8e8e8';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        ctx.fillStyle = isSel ? '#fff' : '#333';
+        ctx.font = (isSel ? 'bold ' : '') + '18px ' + font;
+        ctx.fillText(d, x + cell / 2, y + cell / 2);
+        d++;
+      }
+    }
+
+    // 底部汇总
+    ctx.font = summaryFont;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#333';
+    let sy = gridTop + gridH + summaryPad + 12;
+    lines.forEach(line => {
+      ctx.fillText(line, pad, sy);
+      sy += 24;
+    });
+
+    // 导出下载
+    cv.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = year + '年' + (month + 1) + '月排班.png';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('图片已下载');
+    });
+  });
+</script>
+</body>
+</html>

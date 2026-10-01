@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字幕时间轴信息移除工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output-container {
+            margin-top: 20px;
+        }
+        #outputText {
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f0f7ff;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .upload-area p {
+            margin: 0;
+            color: #666;
+        }
+        .upload-area .icon {
+            font-size: 36px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        #fileInput {
+            display: none;
+        }
+        .file-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            color: #2e7d32;
+            font-size: 14px;
+            display: none;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-group button {
+            flex: 1;
+        }
+        #downloadBtn {
+            background-color: #28a745;
+        }
+        #downloadBtn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>字幕时间轴信息移除工具</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <div class="icon">📁</div>
+        <p>点击或拖拽上传字幕文件 (支持 .srt / .ass)</p>
+        <input type="file" id="fileInput" accept=".srt,.ass,.txt">
+    </div>
+    <div id="fileInfo" class="file-info"></div>
+    
+    <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt 和 .ass 格式)..."></textarea>
+    <button id="processBtn">移除时间轴信息</button>
+    <div id="errorMessage" class="error"></div>
+    <div class="output-container">
+        <textarea id="outputText" placeholder="处理后的文本将显示在这里..." readonly></textarea>
+        <div class="btn-group">
+            <button id="copyBtn">复制到剪贴板</button>
+            <button id="downloadBtn">下载 TXT</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function processSubtitle() {
+        const inputArea = document.getElementById('inputText');
+        const outputArea = document.getElementById('outputText');
+        const errorDiv = document.getElementById('errorMessage');
+        
+        errorDiv.textContent = '';
+        outputArea.value = '';
+
+        const input = inputArea.value;
+
+        if (!input.trim()) {
+            errorDiv.textContent = "请输入字幕内容或上传文件。";
+            return;
+        }
+
+        try {
+            let lines = input.split('\n');
+            let outputLines = [];
+            let isAssFormat = lines.some(line => line.trim().startsWith("Dialogue:"));
+
+            if (isAssFormat) {
+                let inEventsSection = false;
+                for (let line of lines) {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine === "[Events]") {
+                        inEventsSection = true;
+                        continue;
+                    }
+                    if (inEventsSection && trimmedLine.startsWith("Dialogue:")) {
+                        const parts = trimmedLine.split(',');
+                        if (parts.length >= 10) {
+                            let dialogueText = parts.slice(9).join(',');
+                            dialogueText = dialogueText.replace(/\{\\[^}]*\}/g, '');
+                            if (dialogueText.trim() !== '') {
+                                outputLines.push(dialogueText.trim());
+                            }
+                        }
+                    } else if (inEventsSection && trimmedLine.startsWith("Comment:")) {
+                         const commentParts = trimmedLine.split(',');
+                         if (commentParts.length >= 10) {
+                             let commentText = commentParts.slice(9).join(',');
+                             commentText = commentText.replace(/\{\\[^}]*\}/g, '');
+                             if (commentText.trim() !== '') {
+                                 outputLines.push(commentText.trim());
+                             }
+                         }
+                    }
+                }
+            } else {
+                let i = 0;
+                while (i < lines.length) {
+                    let line = lines[i];
+                    const timeRegex = /^\s*\d{1,2}:\d{1,2}:\d{1,2},\d{1,3}\s*--\>\s*\d{1,2}:\d{1,2}:\d{1,2},\d{1,3}\s*$/;
+                    if (line.trim() === '' || /^\s*\d+\s*$/.test(line) || timeRegex.test(line)) {
+                        i++;
+                        continue;
+                    }
+                    outputLines.push(line);
+                    i++;
+                }
+            }
+
+            outputArea.value = outputLines.join('\n');
+
+        } catch (error) {
+            console.error('处理过程中发生错误:', error);
+            errorDiv.textContent = "处理过程中发生错误: " + error.message;
+        }
+    }
+
+    function copyToClipboard() {
+        const outputText = document.getElementById('outputText');
+        const errorDiv = document.getElementById('errorMessage');
+        
+        if (!outputText.value.trim()) {
+             errorDiv.textContent = "没有可复制的内容。";
+             return;
+        }
+
+        outputText.select();
+        outputText.setSelectionRange(0, 99999);
+
+        navigator.clipboard.writeText(outputText.value).then(() => {
+            const originalText = document.getElementById('copyBtn').textContent;
+            document.getElementById('copyBtn').textContent = '已复制!';
+            setTimeout(() => {
+                document.getElementById('copyBtn').textContent = originalText;
+            }, 2000);
+        }, (err) => {
+            console.error('无法复制文本: ', err);
+            errorDiv.textContent = '复制失败，请手动复制。';
+        });
+    }
+
+    let uploadedFileName = '';
+
+    function downloadTxt() {
+        const outputText = document.getElementById('outputText');
+        const errorDiv = document.getElementById('errorMessage');
+        
+        if (!outputText.value.trim()) {
+            errorDiv.textContent = "没有可下载的内容，请先处理字幕文件。";
+            return;
+        }
+
+        const blob = new Blob([outputText.value], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        let downloadName = 'subtitle_output.txt';
+        if (uploadedFileName) {
+            const baseName = uploadedFileName.substring(0, uploadedFileName.lastIndexOf('.')) || uploadedFileName;
+            downloadName = baseName + '.txt';
+        }
+        a.download = downloadName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        const originalText = document.getElementById('downloadBtn').textContent;
+        document.getElementById('downloadBtn').textContent = '已下载!';
+        setTimeout(() => {
+            document.getElementById('downloadBtn').textContent = originalText;
+        }, 2000);
+    }
+
+    function handleFileUpload(file) {
+        const errorDiv = document.getElementById('errorMessage');
+        const fileInfo = document.getElementById('fileInfo');
+        const inputArea = document.getElementById('inputText');
+
+        if (!file) return;
+
+        const validExtensions = ['.srt', '.ass', '.txt'];
+        const fileName = file.name.toLowerCase();
+        const isValid = validExtensions.some(ext => fileName.endsWith(ext));
+
+        if (!isValid) {
+            errorDiv.textContent = "不支持的文件格式，请上传 .srt、.ass 或 .txt 文件。";
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            inputArea.value = e.target.result;
+            uploadedFileName = file.name;
+            fileInfo.style.display = 'block';
+            fileInfo.textContent = `✓ 已加载: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            errorDiv.textContent = '';
+        };
+        reader.onerror = function() {
+            errorDiv.textContent = "文件读取失败，请重试。";
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        document.getElementById('processBtn').addEventListener('click', processSubtitle);
+        document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+        document.getElementById('downloadBtn').addEventListener('click', downloadTxt);
+    });
+</script>
+
+</body>
