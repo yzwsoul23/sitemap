@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>盘点内容转可粘贴为excel</title>
+    <!-- 移动端视口设置[2,6](@ref) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* 移动端响应式设计[1,4](@ref) */
+        .container {
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 触摸友好设计[4,7](@ref) */
+        textarea {
+            width: 95%;
+            height: 280px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 14px; /* 移动端适配字号 */
+        }
+
+        /* 按钮布局优化 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        /* 移动端按钮样式[4](@ref) */
+        button {
+            flex: 1;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            touch-action: manipulation; /* 优化触摸响应 */
+        }
+
+        button:active {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>输入文本：</h3>
+        <textarea id="input" placeholder="粘贴输入文本..."></textarea>
+        <div class="btn-group">
+            <button onclick="processText()">转换处理</button>
+        </div>
+        
+        <h3>处理结果：</h3>
+        <textarea id="output" readonly></textarea>
+        
+        <div class="btn-group">
+            <button style="background-color: #17a2b8;" onclick="copyText()">一键复制</button>
+            <button onclick="exportTXT()">导出TXT</button>
+        </div>
+    </div>
+
+    <script>
+        function processText() {
+            // 原始处理逻辑
+            const inputText = document.getElementById('input').value;
+            const lines = inputText.split('\n');
+            let currentHeader = '';
+            const result = [];
+
+            lines.forEach(line => {
+                if (line.startsWith('@')) {
+                    currentHeader = line.slice(1).trim();
+                } else if (line.trim() !== '') {
+                    result.push(currentHeader + ' ' + line.trim());
+                }
+            });
+
+            // 新增空格转Tab处理[^用户需求]
+            const tabResult = result.map(line => 
+                line.replace(/\s+/g, '\t') // 将连续空格替换为Tab
+            ).join('\n');
+
+            document.getElementById('output').value = tabResult;
+        }
+
+        // 一键复制功能[9,10](@ref)
+        function copyText() {
+            const output = document.getElementById('output');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(output.value)
+                    .then(() => alert('复制成功！'))
+                    .catch(err => alert('复制失败：' + err));
+            } else {
+                output.select();
+                document.execCommand('copy');
+                alert('复制成功（传统方式）');
+            }
+        }
+
+        // 导出TXT功能[11](@ref)
+        function exportTXT() {
+            const text = document.getElementById('output').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `处理结果_${new Date().toLocaleString().replace(/[/:]/g,'-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

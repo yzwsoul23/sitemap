@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>当代艺术驱动器 · 本地版</title>
+  <!-- Pixel font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      color: #0f0;
+      font-family: 'Press Start 2P', monospace;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* 添加背景网格效果 */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(rgba(15, 255, 15, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 255, 15, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      z-index: -1;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      border: 2px solid rgba(15, 255, 15, 0.5);
+      background-color: rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 15px rgba(15, 255, 15, 0.5);
+      border-radius: 4px;
+      animation: pulse 4s infinite alternate;
+      width: 90%;
+      max-width: 450px;
+      box-sizing: border-box;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 15px rgba(15, 255, 15, 0.5); }
+      100% { box-shadow: 0 0 30px rgba(15, 255, 15, 0.8); }
+    }
+    
+    #display {
+      width: 100%;
+      height: 140px;
+      border: 4px solid #0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+      box-sizing: border-box;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      position: relative;
+      overflow: hidden;
+      text-shadow: 0 0 5px rgba(15, 255, 15, 0.7);
+      background-color: rgba(0, 10, 0, 0.5);
+    }
+    
+    #display::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #0f0, transparent);
+      animation: scanline 3s linear infinite;
+    }
+    
+    @keyframes scanline {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    
+    #btn {
+      padding: 1rem 2rem;
+      border: 4px solid #0f0;
+      background: transparent;
+      color: #0f0;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      font-size: 0.8rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    
+    #btn:hover {
+      background: rgba(15, 255, 15, 0.1);
+      transform: scale(1.05);
+    }
+    
+    #btn:active {
+      background: #0f0;
+      color: #000;
+      transform: scale(0.95);
+    }
+    
+    /* 添加闪烁的光标效果 */
+    .cursor {
+      display: inline-block;
+      width: 0.5em;
+      height: 1em;
+      background-color: #0f0;
+      margin-left: 0.2em;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+    
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    
+    /* 添加噪点效果 */
+    .noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH4AcGEAAdMvv9RwAAAFRJREFUaN7t0LERACAIBEGx/5roBBsQPnayMLN3Zt5+ERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERET8PSJPzasZvrzyzgAAAABJRU5ErkJggg==');
+      animation: noise 0.2s infinite;
+    }
+    
+    @keyframes noise {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-1%, -1%); }
+      20% { transform: translate(1%, 1%); }
+      30% { transform: translate(-2%, -2%); }
+      40% { transform: translate(2%, 2%); }
+      50% { transform: translate(-1%, 1%); }
+      60% { transform: translate(1%, -1%); }
+      70% { transform: translate(-2%, 2%); }
+      80% { transform: translate(2%, -2%); }
+      90% { transform: translate(-1%, -1%); }
+    }
+    
+    /* 添加标题 */
+    .title {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(15, 255, 15, 0.7);
+      animation: glow 2s infinite alternate;
+      text-align: center;
+    }
+    
+    @keyframes glow {
+      0% { text-shadow: 0 0 5px rgba(15, 255, 15, 0.7); }
+      100% { text-shadow: 0 0 20px rgba(15, 255, 15, 0.9), 0 0 30px rgba(15, 255, 15, 0.5); }
+    }
+    
+    /* 添加重新生成按钮 */
+    .btn-regenerate {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border: 2px solid #0f0;
+      background: transparent;
+      color: #0f0;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      font-size: 0.6rem;
+      transition: all 0.3s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    
+    .btn-regenerate:hover {
+      background: rgba(15, 255, 15, 0.1);
+    }
+    
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+        width: 95%;
+      }
+      
+      .title {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      #display {
+        height: 120px;
+        font-size: 0.7rem;
+        padding: 1rem;
+      }
+      
+      #btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.7rem;
+      }
+    }
+    
+    /* 小屏幕手机适配 */
+    @media (max-width: 320px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .title {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      
+      #display {
+        height: 100px;
+        font-size: 0.6rem;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      
+      #btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.6rem;
+      }
+    }
+    
+    /* 防止iOS浏览器中的橡皮筋效果 */
+    html, body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="container">
+    <div class="title">当代艺术驱动器</div>
+    <div id="display">—— 按下按钮，驱动艺术灵感 ——</div>
+    <button id="btn">生成灵感</button>
+  </div>
+
+  <script>
+    // 扩充词库 - 按词性分类
+    const wordBank = {
+      // 动词
+      verbs: [
+        '打乱', '踢飞', '扭曲', '融化', '折叠', '撕裂', '吞噬', '蒸发',
+        '穿透', '碾压', '拆解', '粉碎', '扰动', '抽离', '凝固', '悬浮',
+        '分裂', '挤压', '渗透', '侵蚀', '编织', '解构', '重组', '拼贴',
+        '缝合', '翻转', '漂浮', '坍塌', '爆裂', '震荡', '流动', '凝视',
+        '吟唱', '刺穿', '覆盖', '抹除', '烧毁', '冻结', '溶解', '切割',
+        '弯曲', '压缩', '延展', '悬置', '拉伸', '消解', '瓦解', '崩塌',
+        '击穿', '绞杀', '吸收', '投射', '旋转', '扩散', '收缩', '撞击',
+        '挥舞', '抛掷', '浸染', '腐蚀', '抚摸', '摧毁', '拥抱', '吞吐'
+      ],
+      
+      // 名词 - 物体
+      objects: [
+        '方框', '五边形', '圆环', '螺旋', '立方体', '金字塔', '球体', '棱镜',
+        '网格', '曲线', '波浪', '断层', '褶皱', '裂缝', '边界', '节点',
+        '碎片', '残骸', '废墟', '容器', '屏障', '通道', '界面', '镜像',
+        '表面', '外壳', '骨架', '结构', '肌理', '纹理', '符号', '图像',
+        '屏幕', '窗口', '门户', '围墙', '天花板', '地板', '柱子', '台阶',
+        '机器', '装置', '引擎', '齿轮', '电路', '管道', '电缆', '按钮',
+        '飞蛾', '蜂巢', '触角', '翅膀', '细胞', '神经', '血管', '器官',
+        '皮肤', '骨骼', '肢体', '触须', '根茎', '树枝', '花朵', '种子'
+      ],
+      
+      // 名词 - 抽象概念
+      concepts: [
+        '时间', '空间', '记忆', '意识', '梦境', '现实', '虚无', '存在',
+        '虚拟', '真实', '幻象', '错觉', '感知', '思维', '情感', '欲望',
+        '恐惧', '焦虑', '狂喜', '忧郁', '孤独', '亲密', '疏离', '连接',
+        '断裂', '流变', '秩序', '混沌', '边缘', '中心', '表层', '深度',
+        '权力', '控制', '自由', '束缚', '规则', '偶然', '必然', '可能',
+        '信息', '数据', '代码', '噪音', '信号', '频率', '波长', '振幅',
+        '系统', '网络', '矩阵', '算法', '模式', '结构', '过程', '循环',
+        '历史', '未来', '当下', '永恒', '瞬间', '持续', '加速', '静止'
+      ],
+      
+      // 形容词
+      adjectives: [
+        '红色', '蓝色', '透明', '模糊', '锐利', '柔软', '坚硬', '脆弱',
+        '潮湿', '干燥', '炽热', '冰冷', '明亮', '黯淡', '斑驳', '光滑',
+        '粗糙', '锈蚀', '崭新', '古老', '巨大', '微小', '厚重', '轻盈',
+        '扭曲', '笔直', '破碎', '完整', '空洞', '充实', '紧密', '松散',
+        '虚幻', '具象', '抽象', '具体', '复杂', '简约', '混乱', '有序',
+        '无常', '稳定', '流动', '静止', '急促', '缓慢', '强烈', '微弱',
+        '刺眼', '朦胧', '清晰', '模糊', '湿润', '干涸', '丰满', '枯竭',
+        '狂野', '驯服', '沉默', '喧嚣', '沉重', '轻盈', '锋利', '钝感'
+      ],
+      
+      // 副词
+      adverbs: [
+        '突然', '缓慢', '无声', '轰鸣', '悄然', '猛烈', '温柔', '粗暴',
+        '彻底', '部分', '永远', '暂时', '反复', '偶然', '必然', '意外',
+        '精确', '模糊', '刻意', '无意', '近乎', '几乎', '完全', '部分',
+        '深深', '轻轻', '极度', '适度', '过分', '恰好', '勉强', '轻易',
+        '疯狂', '理性', '本能', '自觉', '无意', '有意', '盲目', '清醒',
+        '持续', '间断', '循环', '线性', '螺旋', '迂回', '直接', '间接',
+        '内在', '外显', '隐秘', '公开', '私密', '共享', '封闭', '开放',
+        '虚幻', '真实', '表面', '深层', '显性', '隐性', '前卫', '怀旧'
+      ],
+      
+      // 介词/连词
+      prepositions: [
+        '中', '上', '下', '内', '外', '间', '旁', '侧',
+        '前', '后', '左', '右', '处', '边', '里', '外',
+        '与', '和', '及', '或', '而', '但', '却', '且',
+        '因', '为', '从', '向', '到', '于', '以', '被'
+      ],
+      
+      // 特殊词汇 - 当代艺术术语
+      artTerms: [
+        '异质性', '去中心化', '后人类', '拟像', '符号学', '元叙事', '互文性', '解域',
+        '领域特定性', '关系美学', '参与性', '社会介入', '身体政治', '情感劳动', '数据主权', '算法治理',
+        '媒介考古学', '新物质主义', '思辨设计', '后数字', '超对象', '人类世', '资本拟人化', '认知映射',
+        '去殖民化', '酷儿理论', '赛博格', '生物艺术', '神经美学', '媒介特异性', '后互联网', '平台政治',
+        '技术奇点', '加速主义', '深度时间', '暗黑生态学', '超平面', '感官民主', '认知资本主义', '情感经济'
+      ],
+      
+      // 特殊词汇 - 人物/角色
+      characters: [
+        '信徒', '漫游者', '观察者', '收集者', '建筑师', '编码者', '解析者', '探索者',
+        '守护者', '破坏者', '创造者', '消费者', '幸存者', '追随者', '背叛者', '质疑者',
+        '梦想家', '实践者', '思想家', '行动者', '记录者', '见证者', '传递者', '接收者',
+        '控制者', '被控者', '支配者', '服从者', '引导者', '迷失者', '觉醒者', '沉睡者'
+      ],
+      
+      // 特殊词汇 - 状态/现象
+      phenomena: [
+        '回声', '残影', '波纹', '涟漪', '脉冲', '共振', '干扰', '噪声',
+        '静默', '爆发', '崩溃', '重构', '循环', '断裂', '融合', '分离',
+        '迁徙', '游荡', '漂流', '沉淀', '蒸发', '凝结', '扩散', '收缩',
+        '闪烁', '震颤', '脉动', '旋转', '折射', '反射', '吸收', '投射',
+        '巨响', '低语', '呢喃', '嘶吼', '沉默', '共鸣', '失真', '纯净'
+      ]
+    };
+
+    // 句型模板
+    const patterns = [
+      // 基础句型
+      {
+        pattern: ['verbs', 'objects', 'adjectives', 'objects'],
+        weight: 10
+      },
+      {
+        pattern: ['verbs', 'adjectives', 'objects'],
+        weight: 10
+      },
+      {
+        pattern: ['adverbs', 'verbs', 'objects'],
+        weight: 10
+      },
+      {
+        pattern: ['adjectives', 'objects', 'prepositions', 'adjectives', 'concepts'],
+        weight: 8
+      },
+      {
+        pattern: ['objects', 'prepositions', 'adjectives', 'phenomena', 'prepositions', 'characters'],
+        weight: 8
+      },
+      
+      // 复杂句型
+      {
+        pattern: ['adverbs', 'verbs', 'adjectives', 'objects', 'prepositions', 'concepts'],
+        weight: 6
+      },
+      {
+        pattern: ['adjectives', 'concepts', 'verbs', 'adjectives', 'objects'],
+        weight: 6
+      },
+      {
+        pattern: ['artTerms', 'prepositions', 'adjectives', 'objects', 'prepositions', 'characters'],
+        weight: 5
+      },
+      {
+        pattern: ['verbs', 'adjectives', 'phenomena', 'prepositions', 'adverbs', 'verbs', 'concepts'],
+        weight: 5
+      },
+      
+      // 特殊句型
+      {
+        pattern: ['adjectives', 'artTerms', 'prepositions', 'adverbs', 'verbs', 'characters'],
+        weight: 4
+      },
+      {
+        pattern: ['objects', 'prepositions', 'objects', 'verbs', 'concepts', 'prepositions', 'phenomena'],
+        weight: 4
+      },
+      {
+        pattern: ['adverbs', 'adjectives', 'characters', 'verbs', 'artTerms', 'prepositions', 'objects'],
+        weight: 3
+      },
+      {
+        pattern: ['concepts', 'prepositions', 'concepts', 'verbs', 'adjectives', 'phenomena'],
+        weight: 3
+      }
+    ];
+
+    // 随机生成函数
+    function getRandomElement(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+    
+    // 根据权重选择句型
+    function selectWeightedPattern() {
+      const totalWeight = patterns.reduce((sum, pattern) => sum + pattern.weight, 0);
+      let random = Math.random() * totalWeight;
+      
+      for (const pattern of patterns) {
+        random -= pattern.weight;
+        if (random <= 0) {
+          return pattern.pattern;
+        }
+      }
+      
+      return patterns[0].pattern; // 默认返回第一个模式
+    }
+    
+    // 生成艺术语句
+    function generateArtPhrase() {
+      // 选择句型
+      const selectedPattern = selectWeightedPattern();
+      
+      // 根据句型生成短语
+      const phrase = selectedPattern.map(wordType => {
+        // 随机决定是否使用"错误"的词性（增加混乱感）
+        const shouldMixWordType = Math.random() < 0.15; // 15%的概率混用词性
+        
+        if (shouldMixWordType) {
+          // 随机选择一个不同的词库
+          const wordTypes = Object.keys(wordBank);
+          let alternativeType = wordType;
+          while (alternativeType === wordType) {
+            alternativeType = getRandomElement(wordTypes);
+          }
+          return getRandomElement(wordBank[alternativeType]);
+        }
+        
+        return getRandomElement(wordBank[wordType]);
+      }).join('');
+      
+      return phrase;
+    }
+    
+    // 添加文字逐字显示的动画效果
+    const btn = document.getElementById('btn');
+    const display = document.getElementById('display');
+    let isTyping = false;
+    
+    function typeText(text) {
+      if (isTyping) return;
+      
+      isTyping = true;
+      display.innerHTML = '<span class="cursor"></span>';
+      let index = 0;
+      
+      function addChar() {
+        if (index < text.length) {
+          display.innerHTML = text.substring(0, index + 1) + '<span class="cursor"></span>';
+          index++;
+          setTimeout(addChar, 100); // 每个字符的显示间隔
+        } else {
+          isTyping = false;
+        }
+      }
+      
+      addChar();
+    }
+
+    // 添加点击和触摸事件
+    function handleInteraction() {
+      const phrase = generateArtPhrase();
+      typeText(phrase);
+      
+      // 添加按钮点击时的视觉反馈
+      btn.style.backgroundColor = 'rgba(15, 255, 15, 0.2)';
+      setTimeout(() => {
+        btn.style.backgroundColor = 'transparent';
+      }, 200);
+    }
+
+    // 添加点击事件
+    btn.addEventListener('click', handleInteraction);
+    
+    // 添加触摸事件
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault(); // 防止触摸事件的默认行为
+      handleInteraction();
+    }, {passive: false});
+    
+    // 防止双击缩放
+    document.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+    });
+    
+    // 禁用页面缩放
+    document.addEventListener('touchmove', function(e) {
+      if (e.scale !== 1) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    
+    // 初始化时也使用打字效果
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        typeText('—— 按下按钮，驱动艺术灵感 ——');
+      }, 500);
+      
+      // 检测是否为移动设备并调整字体大小
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // 如果是移动设备，根据屏幕宽度调整字体大小
+        const screenWidth = window.innerWidth;
+        if (screenWidth < 360) {
+          document.querySelector('.title').style.fontSize = '0.9rem';
+        }
+      }
+    });
+    
+    // 处理屏幕方向变化
+    window.addEventListener('resize', function() {
+      // 重新调整容器大小
+      const container = document.querySelector('.container');
+      container.style.width = window.innerWidth > 500 ? '90%' : '95%';
+    });
+    
+    // 添加设备方向变化处理
+    window.addEventListener('orientationchange', function() {
+      // 短暂延迟以确保方向变化完成
+      setTimeout(function() {
+        // 重新调整容器大小
+        const container = document.querySelector('.container');
+        container.style.width = window.innerWidth > 500 ? '90%' : '95%';
+      }, 300);
+    });
+  </script>
+</body>
+</html>

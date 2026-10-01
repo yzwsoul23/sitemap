@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据列表管理</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="overlay"></div>
+    <div id="editModal">
+        <input type="text" id="editInput" placeholder="输入修改后的内容">
+        <button id="saveEditButton">保存修改</button>
+    </div>
+    <div id="importModal">
+        <textarea id="importInput" placeholder="请输入要导入的数据，每行一条"></textarea>
+        <button id="savebatchAddButton">确认保存</button>
+    </div>
+    <div id="editAllModal">
+        <textarea id="editAllInput" placeholder="请修改数据，每行一条"></textarea>
+        <button id="saveEditAllButton">确认修改</button>
+    </div>
+    <div id="searchModal">
+        <input type="text" id="searchInput" placeholder="输入要搜索的资产关键词">
+        <div id="searchResults"></div>
+        <button id="closeSearchButton">关闭</button>
+    </div>
+
+    <div id="dataList"></div>
+    <button id="searchButton" title="搜索资产">🔍</button>
+    <button id="collapseAllButton" title="折叠/展开">▼</button>
+    <div class="input-container">
+        <input type="text" id="itemInput" placeholder="输入内容并选择建议项...">
+        <div id="suggestions"></div>
+        <div class="button-group">
+            <button id="exportButton">导出TXT</button>
+            <button id="batchAddButton">批量添加</button>
+            <button id="batchEditButton">批量修改</button>
+            <button id="deleteAllButton">删除全部</button>
+        </div>
+    </div>
+    <div id="guideModal">
+        <div class="guide-content">
+            快速操作指南：
+
+            基本操作：
+            - 在输入框输入内容后点击回车键或按下添加按钮可添加新数据行
+            - 长按任何数据行可复制该行内容
+            - 向左滑动数据行可编辑内容
+            - 向右滑动数据行可删除内容（地点行会同时删除其所有资产）
+            
+            地点管理：
+            - 以@开头的行会自动标记为地点行（黄底红字）
+            - 点击地点行可展开/折叠该地点下的所有资产
+            - 点击地点行右侧的✏️按钮可批量编辑该地点及其所有资产
+            - 相同地点名称不允许重复添加
+            - 第一个地点行"@模板资产"用于存放模板数据，不会被导出
+            
+            批量操作：
+            - 点击"批量添加"可一次性添加多条数据（每行一条）
+            - 点击"批量修改"可编辑全部数据内容
+            - 点击"删除全部"可清空除模板资产外的所有数据
+            - 点击"导出TXT"可将数据（除模板资产外）导出为文本文件
+            
+            辅助功能：
+            - 右下角↑按钮可快速返回列表顶部
+            - 右下角▼/▶按钮可一键折叠/展开所有地点
+            - 右下角🔍按钮可搜索资产，结果按地点分组显示
+            
+            使用技巧：
+            - 每个地点下的资产会自动编号（1. 2. 3. ...）
+            - 批量导入时会自动检查地点是否重复
+            - 长按复制内容可用于快速创建类似条目
+            - 折叠不常用地点可使列表更简洁
+            
+            提示：该应用数据存储在本地浏览器中，清除浏览器数据可能导致信息丢失，建议定期导出备份。
+        </div>
+        <button id="closeGuideButton">我知道了</button>
+    </div>
+    
+    <div id="locationEditModal">
+        <h3>编辑地点及资产</h3>
+        <textarea id="locationEditInput" placeholder="编辑地点及其所有资产，每行一条"></textarea>
+        <button id="saveLocationEditButton">保存修改</button>
+    </div>
+
+    <div id="backupModal">
+        <h3>数据备份与恢复</h3>
+        <div class="backup-info">
+            <p>上次自动备份时间：<span id="lastBackupTime">无</span></p>
+            <p>当前自动备份状态：<span id="backupStatus">已启用</span></p>
+        </div>
+        <div class="backup-buttons">
+            <button id="manualBackupButton">立即备份</button>
+            <button id="restoreBackupButton">恢复备份</button>
+            <button id="exportBackupButton">导出备份文件</button>
+            <button id="importBackupButton">导入备份文件</button>
+            <input type="file" id="backupFileInput" accept=".json" style="display: none;">
+        </div>
+        <div class="backup-options">
+            <label>
+                <input type="checkbox" id="autoBackupEnabled" checked>
+                启用自动备份
+            </label>
+            <label>
+                备份频率：
+                <select id="backupFrequency">
+                    <option value="3600000">每小时</option>
+                    <option value="86400000" selected>每天</option>
+                    <option value="604800000">每周</option>
+                </select>
+            </label>
+            <label>
+                保留备份数：
+                <select id="backupRetention">
+                    <option value="1">1个</option>
+                    <option value="3" selected>3个</option>
+                    <option value="5">5个</option>
+                    <option value="10">10个</option>
+                </select>
+            </label>
+        </div>
+        <div class="backup-list">
+            <h4>可用备份列表</h4>
+            <div id="backupsList"></div>
+        </div>
+        <button id="closeBackupModalButton">关闭</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

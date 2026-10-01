@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1A2B 猜数字游戏</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="这是一个简单的线上1A2B 猜数字游戏">
+    <meta name="keywords" content="快乐又开心的1A2B 猜数字游戏">
+    <meta name="robots" content="index, follow">
+
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="这是一个简单的线上1A2B 猜数字游戏">
+    <meta property="og:description" content="快乐又开心的1A2B 猜数字游戏">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="这是一个简单的线上1A2B 猜数字游戏">
+    <meta name="twitter:description" content="快乐又开心的1A2B 猜数字游戏">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        p {
+            line-height: 1.6;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9ecef;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        input[type="number"], input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 600px) {
+            body {
+                margin-top: 20px;
+                font-size: 1em;
+            }
+            .container {
+                padding: 15px;
+            }
+            input, button {
+                width: 100%;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>1A2B 猜数字游戏</h1>
+        <p>游戏规则：电脑会随机生成一个由不重複数字组成的密码，玩家需要猜测这个数字组合。每次猜测后，会根据正确的数字和位置数量给出提示：</p>
+        <ul style="text-align: left;">
+            <li><strong>A</strong>: 表示数字和位置都正确。</li>
+            <li><strong>B</strong>: 表示数字正确但位置不对。</li>
+        </ul>
+        <p>例如，如果密码是 <code>1234</code> 而你的猜测是 <code>1325</code>，那麽结果将是 <strong>1A2B</strong>（1 个数字和位置正确，2 个数字正确但位置错误）。</p>
+
+        <p>自订猜测的数字长度（2-10 位数）：</p>
+        <input type="number" id="digitLength" min="2" max="10" placeholder="输入数字长度">
+        <button onclick="startGame()">开始新游戏</button>
+        <br><br>
+        <input type="text" id="guess" placeholder="输入数字">
+        <button onclick="checkGuess()">猜测</button>
+        <p id="result"></p>
+        <p id="history"></p>
+        <h2>积分榜</h2>
+        <p id="scoreboard"></p>
+        <button onclick="shareScore()">分享成绩</button>
+        <button onclick="resetScoreboard()">删除最佳成绩</button>
+    </div>
+
+    <script>
+        const gameState = {
+            answer: '',
+            attempts: [],
+            digitLength: 0,
+            winningDigitLength: null
+        };
+
+        const bestScoreData = {
+            score: localStorage.getItem("bestScore") || "无",
+            digitLength: localStorage.getItem("bestScoreDigitLength") || "无"
+        };
+
+        document.getElementById("scoreboard").textContent = 
+            bestScoreData.score === "无" 
+            ? `最佳成绩：无` 
+            : `最佳成绩：${bestScoreData.score} 次（数字长度：${bestScoreData.digitLength} 位）`;
+
+        function updateScoreboard(currentScore) {
+            let bestScore = parseInt(localStorage.getItem("bestScore"));
+            if (!bestScore || currentScore < bestScore) {
+                localStorage.setItem("bestScore", currentScore);
+                localStorage.setItem("bestScoreDigitLength", gameState.winningDigitLength);
+                document.getElementById("scoreboard").textContent = 
+                    `最佳成绩：${currentScore} 次（数字长度：${gameState.winningDigitLength} 位）`;
+                alert("恭喜！你创下了新的最佳成绩！");
+            }
+        }
+
+        function startGame() {
+            gameState.digitLength = parseInt(document.getElementById("digitLength").value);
+            if (isNaN(gameState.digitLength) || gameState.digitLength < 2 || gameState.digitLength > 10) {
+                alert("请输入 2 到 10 之间的数字");
+                return;
+            }
+            gameState.answer = generateAnswer(gameState.digitLength);
+            gameState.attempts = [];
+            gameState.winningDigitLength = null;
+
+            document.getElementById("result").textContent = "";
+            document.getElementById("history").textContent = "";
+            document.getElementById("guess").value = "";
+            document.getElementById("guess").setAttribute("maxlength", gameState.digitLength);
+            document.getElementById("guess").disabled = false;
+            document.querySelector('button[onclick="checkGuess()"]').disabled = false;
+            alert(`游戏已开始！猜一个 ${gameState.digitLength} 位不重複的数字组合。`);
+        }
+
+        function generateAnswer(length) {
+            let digits = [];
+            while (digits.length < length) {
+                let digit = Math.floor(Math.random() * 10);
+                if (!digits.includes(digit)) digits.push(digit);
+            }
+            return digits.join('');
+        }
+
+        function checkGuess() {
+            let guess = document.getElementById("guess").value;
+            if (!/^\d+$/.test(guess) || guess.length !== gameState.answer.length || new Set(guess).size !== guess.length) {
+                alert(`请输入 ${gameState.answer.length} 个不同的数字！`);
+                return;
+            }
+
+            let a = 0, b = 0;
+            for (let i = 0; i < gameState.answer.length; i++) {
+                if (guess[i] === gameState.answer[i]) {
+                    a++;
+                } else if (gameState.answer.includes(guess[i])) {
+                    b++;
+                }
+            }
+
+            gameState.attempts.push(`${guess} - ${a}A${b}B`);
+            document.getElementById("history").innerHTML = gameState.attempts.join("<br>");
+
+            if (a === gameState.answer.length) {
+                document.getElementById("result").textContent = `恭喜！你猜对了！总共用了 ${gameState.attempts.length} 次。`;
+                gameState.winningDigitLength = gameState.digitLength;
+                updateScoreboard(gameState.attempts.length);
+                document.getElementById("guess").disabled = true;
+                document.querySelector('button[onclick="checkGuess()"]').disabled = true;
+            } else {
+                document.getElementById("result").textContent = `${a}A${b}B，继续加油！`;
+            }
+        }
+
+        function shareScore() {
+            if (bestScoreData.score === "无" || bestScoreData.digitLength === "无") {
+                alert("你还没有最佳成绩可分享！");
+                return;
+            }
+
+            let shareText = `我在 1A2B 猜数字游戏中（自订数字长度：${bestScoreData.digitLength} 位）创下了 ${bestScoreData.score} 次的最佳成绩！你能打破我的纪录吗？`;
+            let shareUrl = "https://yzwsoul23.github.io/1A2B/"; // 游戏网站连结
+            let fullShareText = `${shareText} 快来试试看吧！ ${shareUrl}`;
+
+            // 将分享文本复制到剪贴板
+            navigator.clipboard.writeText(fullShareText)
+                .then(() => alert("成绩已复制到剪贴板！快去与朋友分享吧！"))
+                .catch(() => alert("复制失败，请重试！"));
+        }
+
+        function resetScoreboard() {
+            if (confirm("确定要删除最佳成绩吗？此操作无法恢复！")) {
+                localStorage.removeItem("bestScore");
+                localStorage.removeItem("bestScoreDigitLength");
+                document.getElementById("scoreboard").textContent = "最佳成绩：无";
+                alert("最佳成绩已删除！");
+            }
+        }
+
+        function handleEnterPress(inputId, callback) {
+            document.getElementById(inputId).addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    callback();
+                }
+            });
+        }
+
+        handleEnterPress("guess", checkGuess);
+        handleEnterPress("digitLength", startGame);
+    </script>
+</body>
+</html>
+
+
+

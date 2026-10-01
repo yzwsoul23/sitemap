@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快递柜取件码管理系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>快递柜取件码</h1>
+            <button class="settings-btn" onclick="openSettings()">⚙️ 设置</button>
+        </header>
+
+        <div class="import-section">
+            <h2>数据导入</h2>
+            <textarea id="importData" placeholder="请粘贴快递信息"></textarea>
+            <div class="import-buttons">
+                <button onclick="importData()">导入数据</button>
+                <button onclick="clearAllData()">清空数据</button>
+            </div>
+        </div>
+
+        <div class="display-section">
+            <div id="lockerGroups"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>快递柜设置</h2>
+                <button class="close-btn" onclick="closeSettings()">✕</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-form">
+                    <input type="text" id="lockerName" placeholder="快递柜名称（如：丰巢）">
+                    <input type="number" id="freeHours" placeholder="免费时长（小时）" min="1">
+                    <button onclick="addLockerSetting()">添加设置</button>
+                </div>
+                <div class="settings-list" id="settingsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

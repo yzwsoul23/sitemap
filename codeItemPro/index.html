@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表格数据过滤处理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #409EFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #3393FF;
+        }
+        .output-section {
+            margin-top: 20px;
+        }
+        .copy-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            text-align: center;
+        }
+		/* 悬浮窗口样式 */
+        .modal {
+            display: block;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 10px;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+        .modal h2 {
+            margin-top: 0;
+            color: #1E90FF	;
+        }
+        .modal ul {
+            padding-left: 20px;
+        }
+        .modal li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>表格数据过滤处理程序</h1>
+        
+        <div class="input-section">
+            <h3>输入原始数据</h3>
+            <textarea id="inputData" placeholder="请粘贴原始表格数据"></textarea>
+            <button onclick="processData()">处理数据</button>
+            <button onclick="clearData()">清空</button>
+        </div>
+        
+        <div class="copy-section">
+            <button onclick="copyRawData()">复制表格数据</button>
+        </div>
+        
+        <div class="output-section">
+            <h3>处理后的数据</h3>
+            <div id="outputTable"></div>
+        </div>
+    </div>
+	<div id="toast" style="
+		position: fixed;
+		bottom: 20px;
+		left: 50%;
+		transform: translateX(-50%) translateY(40px);
+		background: #4CAF50;
+		color: white;
+		padding: 12px 24px;
+		border-radius: 8px;
+		font-size: 16px;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+		opacity: 0;
+		transition: opacity 0.3s ease, transform 0.3s ease;
+		z-index: 10000;
+		pointer-events: none;">
+	</div>
+	<!-- 悬浮说明窗口 -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>使用说明</h2>
+            <ul>
+                <li>此程序将按以下顺序保留列：序号、商品名称、条码、采购数量、条码后四位</li>
+                <li>程序会自动识别"采购数量"或"数量"字段作为数量列</li>
+                <li>如果没有序号字段，将自动从1开始排序</li>
+                <li>条码后四位将自动从条码字段提取</li>
+                <li>其他列将被过滤掉，输出结果将显示在下方表格中</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let processedData = [];
+		
+		// 页面加载完成后自动处理默认数据并显示说明窗口
+        window.onload = function() {
+            document.getElementById('instructionsModal').style.display = 'block';
+        };
+        
+        function closeModal() {
+            document.getElementById('instructionsModal').style.display = 'none';
+        }
+        
+        function processData() {
+            const inputData = document.getElementById('inputData').value;
+            const lines = inputData.split('\n');
+            
+            if (lines.length < 2) {
+                alert('请输入有效的表格数据');
+                return;
+            }
+            
+            // 解析表头
+            const headers = lines[0].split('\t');
+            
+            // 找到需要保留的列索引，支持"采购数量"或"数量"
+            const hasSeqNo = headers.includes('序号');
+            const columnIndex = {
+                '序号': headers.indexOf('序号'),
+                '商品名称': headers.indexOf('商品名称'),
+                '条码': headers.indexOf('商品条码') !== -1 ? headers.indexOf('商品条码') : headers.indexOf('条码'),
+                '采购数量': headers.indexOf('采购数量') !== -1 ? headers.indexOf('采购数量') : headers.indexOf('数量'),
+                '规格': headers.indexOf('规格')
+            };
+            
+            // 存储处理后的数据
+            processedData = [];
+            
+            // 构建结果表格
+            let resultHtml = '<table><thead><tr>';
+            resultHtml += '<th>条码</th><th>序号</th><th>商品名称</th><th>四位</th><th>采购数量</th>';
+            resultHtml += '</tr></thead><tbody>';
+            
+            // 处理每一行数据
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const row = lines[i].split('\t');
+                
+                // 按照指定顺序提取数据
+                let seqNo = '';
+                if (hasSeqNo && columnIndex['序号'] !== -1) {
+                    seqNo = row[columnIndex['序号']] || '';
+                } else {
+                    seqNo = i; // 如果没有序号字段，自动从1开始排序
+                }
+                
+                const barcode = (row[columnIndex['条码']] || '').replace(/\./g, '');
+                const productName = (row[columnIndex['商品名称']] || '').replace(/\./g, '');
+                const lastFourDigits = barcode.length >= 4 ? barcode.slice(-4) : barcode;
+                
+                const orderedData = [
+					`'${barcode}`,
+                    seqNo,
+                    productName,
+                    `'${lastFourDigits}`,
+                    row[columnIndex['采购数量']] || ''
+                ];
+                
+                processedData.push(orderedData);
+                
+                resultHtml += '<tr>';
+                orderedData.forEach(cell => {
+                    resultHtml += `<td>${cell}</td>`;
+                });
+                resultHtml += '</tr>';
+            }
+            
+            resultHtml += '</tbody></table>';
+            document.getElementById('outputTable').innerHTML = resultHtml;
+        }
+        
+        function clearData() {
+            document.getElementById('inputData').value = '';
+            document.getElementById('outputTable').innerHTML = '';
+            processedData = [];
+        }
+        function copyRawData() {
+            if (processedData.length === 0) {
+                alert('请先处理数据');
+                return;
+            }
+            
+            let rawContent = '';
+            processedData.forEach(row => {
+                rawContent += row.join('\t') + '\n';
+            });
+            
+            copyToClipboard(rawContent);
+            showToast('表格数据已复制到剪贴板！');
+        }
+        
+        function copyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+		function showToast(message = '操作成功') {
+			const toast = document.getElementById('toast');
+			if (!toast) return;
+			
+			// 更新文字
+			toast.textContent = message;
+			
+			// 显示动画
+			toast.style.opacity = '1';
+			toast.style.transform = 'translateX(-50%) translateY(0)';
+			
+			// 2秒后自动隐藏
+			setTimeout(() => {
+				toast.style.opacity = '0';
+				toast.style.transform = 'translateX(-50%) translateY(40px)';
+			}, 2000);
+		}
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRC歌词编辑器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button id="helpBtn" class="help-btn" title="使用帮助">❓</button>
+            <h1>LRC歌词编辑器</h1>
+            <p>轻松制作同步歌词文件</p>
+        </header>
+
+        <main>
+            <!-- 音频控制区域 -->
+            <section class="audio-controls">
+                <div class="upload-section">
+                    <input type="file" id="audioUpload" accept="audio/*" />
+                    <label for="audioUpload" class="btn">🎵 上传歌曲</label>
+                    <span id="fileName" class="file-name"></span>
+                </div>
+
+                <div class="player-controls">
+                    <button id="playPauseBtn" class="btn btn-primary" disabled>
+                        <span id="playPauseIcon">▶</span> 播放
+                    </button>
+                    <div class="time-display">
+                        <span id="currentTime">00:00</span> / 
+                        <span id="totalTime">00:00</span>
+                    </div>
+                </div>
+
+                <div class="timestamp-controls">
+                    <button id="addTimestampBtn" class="btn btn-secondary" disabled>⏱️ 打时间戳</button>
+                    <button id="pasteLyricsBtn" class="btn btn-info">📋 粘贴歌词</button>
+                    <button id="playLyricsBtn" class="btn btn-success" disabled>🎵 播放歌词</button>
+                    <div class="settings-group">
+                        <label for="rewindTime">后退时间:</label>
+                        <select id="rewindTime" class="rewind-select">
+                            <option value="1">1秒</option>
+                            <option value="2">2秒</option>
+                            <option value="3">3秒</option>
+                            <option value="4">4秒</option>
+                            <option value="5">5秒</option>
+                            <option value="6">6秒</option>
+                            <option value="7">7秒</option>
+                            <option value="8">8秒</option>
+                            <option value="9">9秒</option>
+                            <option value="10" selected>5秒</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 音频波形图区域 -->
+                <div id="waveform-container" class="waveform-container">
+                    <canvas id="waveform-canvas"></canvas>
+                </div>
+            </section>
+
+            <!-- 歌词编辑区域 -->
+            <section class="lyrics-editor">
+                <div class="editor-header">
+                    <h2>歌词编辑</h2>
+                    <div class="editor-actions">
+                        <button id="addRowBtn" class="btn btn-small">➕ 添加行</button>
+                        <button id="importLrcBtn" class="btn btn-small btn-info">📥 导入LRC</button>
+                        <button id="exportLrcBtn" class="btn btn-small btn-success">📤 导出LRC</button>
+                        <button id="toggleThemeBtn" class="btn btn-small btn-dark">🌙 暗色模式</button>
+                    </div>
+                </div>
+
+                <div class="lyrics-table-container">
+                    <table id="lyricsTable" class="lyrics-table">
+                        <thead>
+                            <tr>
+                                <th style="width:6%">序</th>
+                                <th  style="width:14%">时间戳</th>
+                                <th style="width:70%">歌词</th>
+                                <th style="width:10%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lyricsTableBody">
+                            <!-- 动态生成歌词行 -->
+                            <tr class="empty-row">
+                                <td colspan="4">暂无歌词，请上传音频并粘贴歌词</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 左下角悬浮播放暂停按钮 -->
+    <button id="floatingPlayBtn" class="floating-play-btn" disabled>
+        <span id="floatingPlayIcon">▶</span>
+    </button>
+
+    <!-- 帮助模态框 -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header">
+                <h3>📖 使用教程</h3>
+                <span class="close help-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h4>🚀 快速开始</h4>
+                    <ol>
+                        <li><strong>上传音频</strong>：点击"🎵 上传歌曲"按钮，选择您的音频文件</li>
+                        <li><strong>粘贴歌词</strong>：点击"📋 粘贴歌词"，填写歌曲信息并粘贴歌词</li>
+                        <li><strong>制作时间标记</strong>：播放音频，按空格键为每行歌词打时间戳</li>
+                        <li><strong>预览检查</strong>：点击"🎵 播放歌词"查看同步效果</li>
+                        <li><strong>导出文件</strong>：点击"📤 导出LRC"下载歌词文件</li>
+                    </ol>
+                </div>
+                
+                <div class="help-section">
+                    <h4>⌨️ 快捷键</h4>
+                    <table class="help-table">
+                        <tr>
+                            <td><kbd>空格</kbd></td>
+                            <td>播放时：标记当前行并跳转下一行<br>暂停时：播放/暂停音频</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>↑</kbd></td>
+                            <td>选择上一行 + 音频后退（1-10秒可调）</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>↓</kbd></td>
+                            <td>选择下一行</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Enter</kbd></td>
+                            <td>添加新歌词行</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Esc</kbd></td>
+                            <td>关闭弹窗</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>双击</kbd></td>
+                            <td>编辑时间戳或歌词文本</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="help-section">
+                    <h4>💡 使用技巧</h4>
+                    <ul>
+                        <li>先完整听一遍歌曲，了解节奏后再开始打点</li>
+                        <li>利用波形图可以更准确地定位时间点</li>
+                        <li>根据歌曲节奏调整后退时间，提高打点效率</li>
+                        <li>制作完成后务必使用播放歌词功能检查效果</li>
+                        <li>如果整体时间有偏差，可以修改offset值</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h4>🎵 播放歌词模式</h4>
+                    <p>点击"🎵 播放歌词"按钮后，歌词会根据音频播放进度自动滚动和高亮显示，方便检查时间标记是否准确。</p>
+                </div>
+                
+                <div class="help-section">
+                    <h4>📁 LRC文件格式</h4>
+                    <p>导出的LRC文件包含以下元数据：</p>
+                    <ul>
+                        <li><code>[ti:]</code> - 歌曲标题</li>
+                        <li><code>[ar:]</code> - 歌手名</li>
+                        <li><code>[al:]</code> - 专辑名</li>
+                        <li><code>[by:]</code> - 制作人</li>
+                        <li><code>[offset:]</code> - 时间偏移量（毫秒）</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeHelpBtn" class="btn btn-primary">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 粘贴歌词模态框 -->
+    <div id="pasteLyricsModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>粘贴歌词</h3>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="metadata-fields">
+                            <div class="metadata-field">
+                                <label for="songTitle">歌曲名:</label>
+                                <input type="text" id="songTitle" placeholder="请输入歌曲名">
+                            </div>
+                            <div class="metadata-field">
+                                <label for="artistName">歌手名:</label>
+                                <input type="text" id="artistName" placeholder="请输入歌手名">
+                            </div>
+                            <div class="metadata-field">
+                                <label for="albumName">专辑名:</label>
+                                <input type="text" id="albumName" placeholder="请输入专辑名">
+                            </div>
+                            <div class="metadata-field">
+                                <label for="makerName">制作人:</label>
+                                <input type="text" id="makerName" placeholder="请输入制作人">
+                            </div>
+                        </div>
+                        <textarea id="lyricsTextarea" placeholder="请在此粘贴您的歌词，每行一句..."></textarea>
+                        <p>提示：每行一句歌词，程序会自动处理格式</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="confirmPasteBtn" class="btn btn-primary">确认</button>
+                        <button id="cancelPasteBtn" class="btn">取消</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>LRC歌词编辑器 &copy; 2025 - 轻松制作同步歌词文件</p>
+        </footer>
+    </div>
+
+    <script src="main.js?v=1.1"></script>
+</body>
+</html>

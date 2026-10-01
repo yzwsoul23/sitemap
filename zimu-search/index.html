@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人员拼音搜索表</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input {
+            padding: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            th, td {
+                padding: 6px;
+                font-size: 14px;
+            }
+            .search-container {
+                margin: 10px 0;
+            }
+        }
+        .file-input-container {
+            margin: 20px 0;
+        }
+        .button {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .file-input {
+            display: none;
+        }
+        .status-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .button-danger {
+            background-color: #dc3545;
+            margin-left: 10px;
+        }
+        .button-danger:hover {
+            background-color: #c82333;
+        }
+        tbody tr {
+            cursor: pointer;
+        }
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        #csvEditor {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .modal-buttons {
+            text-align: right;
+        }
+        .button-cancel {
+            background-color: #6c757d;
+            margin-left: 10px;
+        }
+        .button-cancel:hover {
+            background-color: #5a6268;
+        }
+        @media screen and (max-width: 600px) {
+            .modal-content {
+                margin: 10% auto;
+                width: 90%;
+                padding: 15px;
+            }
+        }
+        .select-filter {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            min-width: 150px;
+        }
+        @media screen and (max-width: 600px) {
+            .select-filter {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="file-input-container">
+        <button class="button" id="editButton">编辑数据</button>
+        <button class="button button-danger" id="clearButton">清空数据</button>
+    </div>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>编辑数据表</h3>
+            <p class="hint">请按照 "姓名,学校" 格式编辑，每行一条数据</p>
+            <textarea id="csvEditor" rows="10" placeholder="张三,清华大学&#10;李四,北京大学"></textarea>
+            <div class="modal-buttons">
+                <button class="button" id="saveButton">保存</button>
+                <button class="button button-cancel" id="cancelButton">取消</button>
+            </div>
+        </div>
+    </div>
+    <div id="statusMessage"></div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="输入拼音或汉字搜索...">
+        <select id="schoolFilter" class="select-filter">
+            <option value="">所有学校</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>学校</th>
+            </tr>
+        </thead>
+        <tbody id="peopleList">
+        </tbody>
+    </table>
+
+    <script src="https://unpkg.com/pinyin-pro@3.18.2/dist/index.js"></script>
+    <script src="db.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

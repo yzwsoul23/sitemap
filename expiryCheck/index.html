@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>保质期检查器 - 常用保质期</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #0d47a1;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        .input-row > div {
+            flex: 1;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0d47a1;
+        }
+        .save-btn {
+            background: #388E3C;
+        }
+        .save-btn:hover {
+            background: #2e7d3c;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .expired { background: #ffebee; border-left: 4px solid #d32f2f; color: #c62828; }
+        .half { background: #fff8e1; border-left: 4px solid #ffa000; color: #ff8f00; }
+        .safe { background: #e8f5e8; color: #2e7d32; }
+        .highlight { font-weight: bold; }
+        .note {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .progress-container {
+            margin-top: 15px;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .progress-bar {
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .progress-fill.safe { background: linear-gradient(135deg, #4caf50, #66bb6a); }
+        .progress-fill.half { background: linear-gradient(135deg, #ff9800, #ffa726); }
+        .progress-fill.expired { background: linear-gradient(135deg, #f44336, #ef5350); }
+        .info-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1976d2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .info-btn:hover {
+            background: #0d47a1;
+            transform: scale(1.1);
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin: 20px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0d47a1;
+            margin: 0;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+        .close-btn:hover {
+            color: #d32f2f;
+        }
+        .modal-content {
+            line-height: 1.8;
+            color: #333;
+        }
+        .modal-content h3 {
+            color: #1976d2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .modal-content p {
+            margin-bottom: 15px;
+        }
+        .modal-content strong {
+            color: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <button class="info-btn" onclick="toggleModal()" title="查看说明">💡</button>
+
+    <div class="container">
+        <h1>📦 保质期状态检查</h1>
+
+        <!-- 常用保质期选择 -->
+        <div class="form-group">
+            <label for="savedPeriods">常用保质期（可选）：</label>
+            <select id="savedPeriods" onchange="loadSavedPeriod()">
+                <option value="">-- 选择或手动输入 --</option>
+            </select>
+        </div>
+
+        <!-- 生产日期 -->
+        <div class="form-group">
+            <label for="manufactureDate">生产日期：</label>
+            <input type="date" id="manufactureDate" />
+        </div>
+
+        <!-- 保质期输入 -->
+        <div class="form-group">
+            <label>保质期：</label>
+            <div class="input-row">
+                <div>
+                    <input type="number" id="shelfLifeValue" placeholder="例如：180 或 12" min="1" />
+                </div>
+                <div>
+                    <select id="shelfLifeUnit">
+                        <option value="days">天</option>
+                        <option value="months">月</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <button onclick="checkExpiry()">🔍 查询状态</button>
+        <button class="save-btn" type="button" onclick="saveCurrentPeriod()">💾 保存当前保质期</button>
+        <div class="note">保存后可在“常用保质期”中快速选择</div>
+
+        <!-- 结果区域 -->
+        <div id="resultBox" class="result"></div>
+    </div>
+
+    <!-- 说明弹窗 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">💡 如何判断具体到期日？</h2>
+                <button class="close-btn" onclick="toggleModal()">×</button>
+            </div>
+            <div class="modal-content">
+                <p>面对包装上只写了生产日期和保质期天数的情况，您可以这样做来准确判断：</p>
+
+                <h3>首选：查看明确的"到期日"或"有效期至"</h3>
+                <p>最准确的方法是查看包装上是否直接标明了"到期日"或"有效期至"。根据国家市场监督管理总局的规定，如果标签上已经直接标注了到期日，那么就以这个日期为准，这是最没有歧义的方式。</p>
+
+                <h3>次选：根据产品类型推断常规算法</h3>
+                <p>如果包装上没有直接给出到期日，只有保质期天数，您可以参考以下常见的行业惯例进行推断：</p>
+
+                <p><strong>短保质期食品（如鲜牛奶、酸奶、短保面包）：</strong>这类食品为了确保新鲜度，厂家通常采用"从生产日次日计算"的规则。这样做的目的是为物流和销售留出更充足的时间，对消费者来说，也意味着在标注的保质期内能获得更新鲜的产品。所以，您例子中的产品如果是这类，到期日就可能是10月31日。</p>
+
+                <p><strong>长保质期食品（如饼干、罐头、包装零食）：</strong>这类食品更可能采用"从生产日当天计算"的规则。因此，到期日可能是10月30日。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 IndexedDB
+        let db;
+
+        const request = indexedDB.open('ShelfLifeDB', 1);
+
+        request.onerror = () => console.error('数据库打开失败');
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            loadSavedPeriods();
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('periods')) {
+                const store = db.createObjectStore('periods', { keyPath: 'id', autoIncrement: true });
+                // 创建唯一索引防止重复（值+单位组合）
+                store.createIndex('value_unit', ['value', 'unit'], { unique: true });
+            }
+
+            const transaction = event.target.transaction;
+            const store = transaction.objectStore('periods');
+
+            const defaultPeriods = [
+                { value: 12, unit: 'months' },
+                { value: 10, unit: 'months' },
+                { value: 9, unit: 'months' },
+                { value: 8, unit: 'months' },
+                { value: 6, unit: 'months' },
+                { value: 5, unit: 'months' },
+                { value: 270, unit: 'days' },
+                { value: 210, unit: 'days' },
+                { value: 200, unit: 'days' },
+                { value: 150, unit: 'days' },
+                { value: 120, unit: 'days' },
+                { value: 90, unit: 'days' },
+                { value: 60, unit: 'days' },
+                { value: 30, unit: 'days' },
+            ];
+
+            defaultPeriods.forEach(period => {
+                try {
+                    store.add(period);
+                } catch (e) {
+                    if (e.name !== 'ConstraintError') {
+                        console.error('添加预设保质期失败:', e);
+                    }
+                }
+            });
+        };
+
+        // 从数据库加载已保存的保质期
+        function loadSavedPeriods() {
+            const select = document.getElementById('savedPeriods');
+            select.innerHTML = '<option value="">-- 选择或手动输入 --</option>';
+
+            const transaction = db.transaction(['periods'], 'readonly');
+            const store = transaction.objectStore('periods');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                request.result.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ value: item.value, unit: item.unit });
+                    const text = `${item.value} ${item.unit === 'days' ? '天' : '个月'}`;
+                    option.textContent = text;
+                    select.appendChild(option);
+                });
+            };
+        }
+
+        // 选择常用保质期时填充输入框
+        function loadSavedPeriod() {
+            const val = document.getElementById('savedPeriods').value;
+            if (!val) return;
+            const { value, unit } = JSON.parse(val);
+            document.getElementById('shelfLifeValue').value = value;
+            document.getElementById('shelfLifeUnit').value = unit;
+        }
+
+        // 保存当前保质期（值+单位）
+        function saveCurrentPeriod() {
+            const valueStr = document.getElementById('shelfLifeValue').value.trim();
+            const unit = document.getElementById('shelfLifeUnit').value;
+
+            if (!valueStr || isNaN(valueStr) || Number(valueStr) <= 0) {
+                alert('请输入有效的保质期数值（大于0）！');
+                return;
+            }
+
+            const value = parseInt(valueStr, 10);
+
+            const transaction = db.transaction(['periods'], 'readwrite');
+            const store = transaction.objectStore('periods');
+
+            // 尝试添加（如果已存在相同组合会失败，避免重复）
+            const request = store.add({ value, unit });
+
+            request.onsuccess = () => {
+                alert('✅ 常用保质期已保存！');
+                loadSavedPeriods(); // 刷新下拉列表
+            };
+
+            request.onerror = (event) => {
+                if (event.target.error.name === 'ConstraintError') {
+                    alert('⚠️ 该保质期已存在，无需重复保存。');
+                } else {
+                    console.error('保存失败:', event.target.error);
+                    alert('❌ 保存失败，请重试。');
+                }
+            };
+        }
+
+        // 主查询逻辑
+        function checkExpiry() {
+            const manuDateStr = document.getElementById('manufactureDate').value;
+            const shelfValueStr = document.getElementById('shelfLifeValue').value;
+            const unit = document.getElementById('shelfLifeUnit').value;
+
+            const resultBox = document.getElementById('resultBox');
+            resultBox.style.display = 'block';
+            resultBox.className = 'result';
+
+            if (!manuDateStr || !shelfValueStr) {
+                resultBox.innerHTML = '<p style="color:red;">⚠️ 请填写生产日期和保质期！</p>';
+                resultBox.classList.add('expired');
+                return;
+            }
+
+            const shelfValue = parseFloat(shelfValueStr);
+            if (isNaN(shelfValue) || shelfValue <= 0) {
+                resultBox.innerHTML = '<p style="color:red;">⚠️ 保质期必须是大于0的数字！</p>';
+                resultBox.classList.add('expired');
+                return;
+            }
+
+            const manufactureDate = new Date(manuDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 计算过期时间（包括生产当天，所以减去1天）
+            let expiryDate;
+            if (unit === 'days') {
+                expiryDate = new Date(manufactureDate);
+                expiryDate.setDate(expiryDate.getDate() + shelfValue - 1);
+            } else {
+                expiryDate = new Date(manufactureDate);
+                expiryDate.setMonth(expiryDate.getMonth() + shelfValue);
+                expiryDate.setDate(expiryDate.getDate() - 1);
+            }
+
+            // 时间差（天）
+            const diffTime = expiryDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // 总保质期天数 & 已过天数（用于判断是否过半）
+            const totalLifeMs = expiryDate - manufactureDate;
+            const totalLifeDays = totalLifeMs / (1000 * 60 * 60 * 24);
+            const halfLifeDays = totalLifeDays / 2;
+            const passedMs = today - manufactureDate;
+            const passedDays = passedMs > 0 ? Math.ceil(passedMs / (1000 * 60 * 60 * 24)) : 0;
+
+            let progressPercent = 0;
+            let progressClass = '';
+            if (diffDays < 0) {
+                progressPercent = 100;
+                progressClass = 'expired';
+            } else if (passedDays > halfLifeDays) {
+                progressPercent = Math.min(100, Math.round((passedDays / totalLifeDays) * 100));
+                progressClass = 'half';
+            } else {
+                progressPercent = Math.min(100, Math.round((passedDays / totalLifeDays) * 100));
+                progressClass = 'safe';
+            }
+
+            let statusHTML = '';
+            let boxClass = '';
+
+            if (diffDays < 0) {
+                statusHTML = `
+                    <p><span class="highlight">🚨 已过期！</span></p>
+                    <p>过期日期：<strong>${expiryDate.toLocaleDateString()}</strong></p>
+                    <p>已过期 <span class="highlight">${Math.abs(diffDays)}</span> 天</p>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>进度</span>
+                            <span>${progressPercent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${progressClass}" style="width: ${progressPercent}%">${progressPercent}%</div>
+                        </div>
+                    </div>
+                `;
+                boxClass = 'expired';
+            } else if (passedDays > halfLifeDays) {
+                statusHTML = `
+                    <p><span class="highlight">⚠️ 未过期，但保质期已过半！</span></p>
+                    <p>过期日期：<strong>${expiryDate.toLocaleDateString()}</strong></p>
+                    <p>剩余时间：<strong>${formatRemainingTime(diffDays)}</strong></p>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>进度</span>
+                            <span>${progressPercent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${progressClass}" style="width: ${progressPercent}%">${progressPercent}%</div>
+                        </div>
+                    </div>
+                `;
+                boxClass = 'half';
+            } else {
+                statusHTML = `
+                    <p><span class="highlight">✅ 状态良好，在保质期内</span></p>
+                    <p>过期日期：<strong>${expiryDate.toLocaleDateString()}</strong></p>
+                    <p>剩余时间：<strong>${formatRemainingTime(diffDays)}</strong></p>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>进度</span>
+                            <span>${progressPercent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${progressClass}" style="width: ${progressPercent}%">${progressPercent}%</div>
+                        </div>
+                    </div>
+                `;
+                boxClass = 'safe';
+            }
+
+            resultBox.innerHTML = statusHTML;
+            resultBox.classList.add(boxClass);
+        }
+
+        function formatRemainingTime(days) {
+            if (days <= 0) return "0天";
+            const months = Math.floor(days / 30);
+            const remainingDays = days % 30;
+            if (months > 0 && remainingDays > 0) {
+                return `${months}个月${remainingDays}天`;
+            } else if (months > 0) {
+                return `${months}个月`;
+            } else {
+                return `${days}天`;
+            }
+        }
+
+        function toggleModal() {
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.toggle('active');
+        }
+
+        function closeModalOutside(event) {
+            if (event.target.id === 'modalOverlay') {
+                toggleModal();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>商品盘点系统</title>
+    <script src="https://fastly.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 商品盘点系统</h1>
+            <p>扫描或输入商品条码，快速盘点商品</p>
+        </div>
+
+        <div class="scan-section">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" id="barcodeInput" placeholder="请输入商品名称..." autofocus>
+                    <div id="searchSuggestions"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="startCamera()">📷 扫描</button>
+            </div>
+            <div class="camera-container" id="cameraContainer">
+                <div id="reader"></div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="results-header">
+                <div class="header-buttons">
+                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ 清空结果</button>
+                    <button class="btn btn-success" onclick="exportToCSV()">📥 导出CSV</button>
+                    <button class="btn btn-info" onclick="copyToClipboard()">📋 复制表格</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%; text-align: right" class="text-right">序</th>
+                            <th style="width: 9%; text-align: center" class="text-center">四位</th>
+                            <th style="width: 64%;">商品名称</th>
+                            <th style="width: 5%; text-align: center" class="text-center">规</th>
+                            <th style="width: 5%; text-align: right" class="text-right">箱</th>
+                            <th style="width: 5%; text-align: right" class="text-right">袋</th>
+                            <th style="width: 8%; text-align: right" class="text-right">总</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                </table>
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <p>暂无扫描结果，请扫描或输入商品条码</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">已扫描商品: <strong id="totalCount">0</strong></div>
+            <div class="status-item">最后扫描: <strong id="lastScan">-</strong></div>
+            <div class="status-item">
+                弹窗焦点: 
+                <select id="focusInputSelect">
+                    <option value="box">箱数输入框</option>
+                    <option value="bag">袋数输入框</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="modal-overlay" id="quantityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">商品盘点</h3>
+                <div class="barcode" id="modalBarcode"></div>
+            </div>
+            <div class="modal-body">
+                <div class="product-info-display">
+                    <div class="product-name" id="modalProductName"></div>
+                    <div class="product-spec">规格: <span id="modalProductSpec"></span></div>
+                </div>
+                <div class="quantity-input-group">
+                    <div class="input-wrapper">
+                        <label>箱数</label>
+                        <input type="number" id="boxCount" min="0" value="" oninput="calculateTotal()" onkeypress="handleBoxCountKeypress(event)">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>袋数</label>
+                        <input type="number" id="bagCount" min="0" value="" oninput="calculateTotal()" onkeypress="handleBagCountKeypress(event)">
+                    </div>
+                </div>
+                <div class="total-quantity">
+                    总数量: <span id="totalQuantity">0</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cancelModal()">取消</button>
+                <button class="btn" onclick="confirmQuantity()">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
