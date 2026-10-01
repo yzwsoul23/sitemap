@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        // 页面渲染前应用已保存的主题，避免刷新时闪烁（默认浅色）
+        (function () {
+            try {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <style>
         * {
             margin: 0;
@@ -17,6 +27,42 @@
         }
 
         :root {
+            color-scheme: light;
+            --bg-gradient-start: #eef2f9;
+            --bg-gradient-end: #dce3f0;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(15, 23, 42, 0.1);
+            --text-primary: #1f2937;
+            --text-secondary: rgba(31, 41, 55, 0.6);
+            --shelf-bg: rgba(255, 255, 255, 0.55);
+            --shelf-border: rgba(15, 23, 42, 0.08);
+            --shelf-surface: rgba(255, 255, 255, 0.6);
+            --shelf-label-bg: rgba(255, 255, 255, 0.9);
+            --accent-tools: #6366f1;
+            --accent-entertainment: #ec4899;
+            --accent-learning: #14b8a6;
+            --text-on-accent: #ffffff;
+            --input-focus-bg: rgba(255, 255, 255, 0.95);
+            --btn-hover-bg: rgba(15, 23, 42, 0.06);
+            --toggle-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+            --shelf-edge-gradient: linear-gradient(to bottom,
+                rgba(15, 23, 42, 0.08) 0%,
+                rgba(15, 23, 42, 0.02) 50%,
+                transparent 100%);
+            --product-gradient: linear-gradient(145deg,
+                rgba(255, 255, 255, 0.95) 0%,
+                rgba(255, 255, 255, 0.65) 100%);
+            --product-hover-gradient: linear-gradient(145deg,
+                #ffffff 0%,
+                rgba(255, 255, 255, 0.8) 100%);
+            --product-shadow: 0 4px 6px rgba(15, 23, 42, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            --product-hover-shadow: 0 8px 16px rgba(15, 23, 42, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        html.dark {
+            color-scheme: dark;
             --bg-gradient-start: #0f0f1e;
             --bg-gradient-end: #1a1a3d;
             --card-bg: rgba(255, 255, 255, 0.05);
@@ -27,9 +73,24 @@
             --shelf-border: rgba(255, 255, 255, 0.06);
             --shelf-surface: rgba(255, 255, 255, 0.02);
             --shelf-label-bg: rgba(255, 255, 255, 0.08);
-            --accent-tools: #6366f1;
-            --accent-entertainment: #ec4899;
-            --accent-learning: #14b8a6;
+            --text-on-accent: #ffffff;
+            --input-focus-bg: rgba(255, 255, 255, 0.08);
+            --btn-hover-bg: rgba(255, 255, 255, 0.1);
+            --toggle-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shelf-edge-gradient: linear-gradient(to bottom,
+                rgba(255, 255, 255, 0.08) 0%,
+                rgba(255, 255, 255, 0.02) 50%,
+                transparent 100%);
+            --product-gradient: linear-gradient(145deg,
+                rgba(255, 255, 255, 0.06) 0%,
+                rgba(255, 255, 255, 0.02) 100%);
+            --product-hover-gradient: linear-gradient(145deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.04) 100%);
+            --product-shadow: 0 4px 6px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            --product-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -38,6 +99,7 @@
             min-height: 100vh;
             color: var(--text-primary);
             padding: 16px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -98,7 +160,7 @@
 
         .search-input:focus {
             border-color: var(--accent-tools);
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--input-focus-bg);
         }
 
         .search-input::placeholder {
@@ -130,12 +192,41 @@
         }
 
         .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--btn-hover-bg);
         }
 
         .filter-btn.active {
             background: var(--accent-tools);
             border-color: var(--accent-tools);
+            color: var(--text-on-accent);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--toggle-shadow);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--btn-hover-bg);
+            transform: scale(1.08);
         }
 
         /* 货架样式 */
@@ -184,10 +275,7 @@
             right: 0;
             bottom: 0;
             height: 8px;
-            background: linear-gradient(to bottom,
-                rgba(255,255,255,0.08) 0%,
-                rgba(255,255,255,0.02) 50%,
-                transparent 100%);
+            background: var(--shelf-edge-gradient);
             border-radius: 0 0 12px 12px;
         }
 
@@ -201,9 +289,7 @@
 
         /* 商品卡片 - 货架上的盒子 */
         .product {
-            background: linear-gradient(145deg,
-                rgba(255,255,255,0.06) 0%,
-                rgba(255,255,255,0.02) 100%);
+            background: var(--product-gradient);
             border: 1px solid var(--card-border);
             border-radius: 8px;
             padding: 16px 12px;
@@ -213,9 +299,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            box-shadow:
-                0 4px 6px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: var(--product-shadow);
         }
 
         /* 商品顶部标签条 */
@@ -236,12 +320,8 @@
 
         .product:hover {
             transform: translateY(-4px);
-            background: linear-gradient(145deg,
-                rgba(255,255,255,0.1) 0%,
-                rgba(255,255,255,0.04) 100%);
-            box-shadow:
-                0 8px 16px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.1);
+            background: var(--product-hover-gradient);
+            box-shadow: var(--product-hover-shadow);
         }
 
         .product-icon {
@@ -293,6 +373,11 @@
                 padding: 12px;
             }
 
+            .theme-toggle {
+                top: 12px;
+                right: 12px;
+            }
+
             h1 {
                 font-size: 24px;
             }
@@ -342,6 +427,7 @@
     </style>
 </head>
 <body>
+    <button id="themeToggle" class="theme-toggle" type="button" title="切换深色模式" aria-label="切换深色模式">🌙</button>
     <div class="container">
         <header>
             <img src="mylogo.png" alt="Logo" class="site-logo">
@@ -460,6 +546,33 @@
         document.getElementById('searchInput').addEventListener('input', function() {
             const activeFilter = document.querySelector('.filter-btn.active').dataset.category;
             renderShelves(activeFilter, this.value);
+        });
+
+        // 主题切换：默认浅色，点击在深色/浅色间切换，偏好保存到 localStorage
+        const themeToggle = document.getElementById('themeToggle');
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.documentElement.classList.toggle('dark', isDark);
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+            themeToggle.title = isDark ? '切换浅色模式' : '切换深色模式';
+            themeToggle.setAttribute('aria-label', themeToggle.title);
+        }
+
+        function getSavedTheme() {
+            try {
+                return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+            } catch (e) {
+                return 'light';
+            }
+        }
+
+        applyTheme(getSavedTheme());
+
+        themeToggle.addEventListener('click', () => {
+            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            applyTheme(next);
         });
 
         renderShelves();
