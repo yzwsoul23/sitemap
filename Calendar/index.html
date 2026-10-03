@@ -635,14 +635,14 @@
     // 星期头
     const weekY = 160;
     ctx.textAlign = 'center';
-    ctx.font = 'bold 46px ' + font;
+    ctx.font = 'bold 52px ' + font;
     ctx.fillStyle = INK;
     ['一','二','三','四','五','六','日'].forEach((w, i) => {
       ctx.fillText(w, padL + i * cellW + cellW / 2, weekY);
     });
 
-    // 日期网格
-    const gridTop = 200, gridBottom = S - 30;
+    // 日期网格（间距紧凑）
+    const gridTop = 220, gridBottom = S - 100;
     const trail = (firstWeekday + daysInMonth) % 7 === 0 ? 0 : 7 - (firstWeekday + daysInMonth) % 7;
     const rows = (firstWeekday + daysInMonth + trail) / 7;
     const cellH = (gridBottom - gridTop) / rows;
