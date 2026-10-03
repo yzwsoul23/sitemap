@@ -118,6 +118,29 @@
   .day.selected .day-lunar { color: rgba(255,255,255,.85); }
   .day.selected .day-badge.xiu { background: #fff; color: #1677ff; }
   .day.selected .day-badge.ban { background: #fff; color: #fa8c16; }
+  /* 月份切换 */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 4px;
+  }
+  .month-nav h1 { margin-bottom: 0; min-width: 180px; }
+  .month-nav button {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+    transition: all .15s;
+  }
+  .month-nav button:hover { border-color: #1677ff; color: #1677ff; }
+
   /* 节日文字标红 */
   .day-lunar.festival { color: #ff4d4f; }
   .day.selected .day-lunar.festival { color: #fff; }
@@ -186,7 +209,11 @@
 </head>
 <body>
 <div class="container">
-  <h1 id="title"></h1>
+  <div class="month-nav">
+    <button id="prevMonth" title="上个月">&#8249;</button>
+    <h1 id="title"></h1>
+    <button id="nextMonth" title="下个月">&#8250;</button>
+  </div>
   <div class="subtitle">点击或按住拖动选择日期</div>
   <div class="weekdays">
     <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
@@ -224,21 +251,24 @@
     "2026-9-26":"ban","2026-10-1":"xiu","2026-10-2":"xiu","2026-10-3":"xiu","2026-10-4":"xiu","2026-10-5":"xiu","2026-10-6":"xiu","2026-10-7":"xiu","2026-10-8":"xiu","2026-10-10":"ban",
   };
 
-  // 计算下个月
-  const now = new Date();
-  const year = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
-  const month = now.getMonth() === 11 ? 0 : now.getMonth() + 1; // 0-based
+  // 月份状态：默认规则——当天≤20号显示当月，>20号显示下月
+  const _now = new Date();
+  const _d = _now.getDate();
+  let viewYear = _now.getFullYear();
+  let viewMonth = _now.getMonth(); // 0-based
+  if (_d > 20) {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  }
 
-  document.getElementById('title').textContent = year + '年' + (month + 1) + '月排班';
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+  let daysInMonth = 0;
+  let firstWeekday = 0;
 
   // ===== 农历/节日工具 =====
   function getDayInfo(d) {
-    const solar = Solar.fromYmd(year, month + 1, d);
+    const solar = Solar.fromYmd(viewYear, viewMonth + 1, d);
     const lunar = solar.getLunar();
-    const key = year + '-' + (month + 1) + '-' + d;
+    const key = viewYear + '-' + (viewMonth + 1) + '-' + d;
     const holidayType = HOLIDAY_MAP[key] || null;
 
     // 显示文本优先级：阳历节日 > 阴历节日 > 节气 > 农历日期
@@ -284,43 +314,64 @@
     }
   }
 
-  for (let i = 0; i < firstWeekday; i++) {
-    const blank = document.createElement('div');
-    blank.className = 'day empty';
-    daysEl.appendChild(blank);
-  }
+  function renderCalendar() {
+    daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    firstWeekday = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+    document.getElementById('title').textContent = viewYear + '年' + (viewMonth + 1) + '月排班';
+    daysEl.innerHTML = '';
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const info = getDayInfo(d);
-    const cell = document.createElement('div');
-    cell.className = 'day';
-    if (info.holidayType === 'xiu') cell.classList.add('holiday');
-    if (info.holidayType === 'ban') cell.classList.add('workday');
-
-    let html = '';
-    if (info.holidayType) {
-      html += '<span class="day-badge ' + info.holidayType + '">' + (info.holidayType === 'xiu' ? '休' : '班') + '</span>';
+    for (let i = 0; i < firstWeekday; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'day empty';
+      daysEl.appendChild(blank);
     }
-    html += '<span class="day-num">' + d + '</span>';
-    html += '<span class="day-lunar' + (info.isFestival ? ' festival' : '') + '">' + info.text + '</span>';
-    cell.innerHTML = html;
 
-    cell.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      isDragging = true;
-      dragSelect = !selected.has(d);
-      applyDrag(cell, d);
-    });
-    cell.addEventListener('mouseenter', () => {
-      if (isDragging) applyDrag(cell, d);
-    });
-    cell.addEventListener('touchstart', () => {
-      isDragging = true;
-      dragSelect = !selected.has(d);
-      applyDrag(cell, d);
-    }, { passive: true });
-    daysEl.appendChild(cell);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const info = getDayInfo(d);
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      if (info.holidayType === 'xiu') cell.classList.add('holiday');
+      if (info.holidayType === 'ban') cell.classList.add('workday');
+
+      let html = '';
+      if (info.holidayType) {
+        html += '<span class="day-badge ' + info.holidayType + '">' + (info.holidayType === 'xiu' ? '休' : '班') + '</span>';
+      }
+      html += '<span class="day-num">' + d + '</span>';
+      html += '<span class="day-lunar' + (info.isFestival ? ' festival' : '') + '">' + info.text + '</span>';
+      cell.innerHTML = html;
+
+      cell.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        dragSelect = !selected.has(d);
+        applyDrag(cell, d);
+      });
+      cell.addEventListener('mouseenter', () => {
+        if (isDragging) applyDrag(cell, d);
+      });
+      cell.addEventListener('touchstart', () => {
+        isDragging = true;
+        dragSelect = !selected.has(d);
+        applyDrag(cell, d);
+      }, { passive: true });
+      daysEl.appendChild(cell);
+    }
   }
+
+  renderCalendar();
+
+  // 月份切换
+  function switchMonth(offset) {
+    viewMonth += offset;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    selected.clear();
+    renderResult();
+    renderCalendar();
+  }
+  document.getElementById('prevMonth').addEventListener('click', () => switchMonth(-1));
+  document.getElementById('nextMonth').addEventListener('click', () => switchMonth(1));
 
   daysEl.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
@@ -471,7 +522,7 @@
     // 标题
     ctx.fillStyle = '#333';
     ctx.font = 'bold 26px ' + font;
-    ctx.fillText(year + '年' + (month + 1) + '月排班', W / 2, pad + titleH / 2);
+    ctx.fillText(viewYear + '年' + (viewMonth + 1) + '月排班', W / 2, pad + titleH / 2);
 
     // 星期头
     ctx.fillStyle = '#999';
@@ -555,7 +606,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = year + '年' + (month + 1) + '月排班.png';
+      a.download = viewYear + '年' + (viewMonth + 1) + '月排班.png';
       a.click();
       URL.revokeObjectURL(url);
       showToast('图片已下载');
