@@ -608,7 +608,7 @@
     const scale = 2;
     const S = 1000;                       // 逻辑边长
     const font = '"Microsoft YaHei", "PingFang SC", sans-serif';
-    const BLUE = '#3f83f8', TEAL = '#2e5a52', INK = '#222', GRAY = '#c9ced6';
+    const BLUE = '#3f83f8', INK = '#222', GRAY = '#c9ced6';
 
     const cv = document.createElement('canvas');
     cv.width = S * scale;
@@ -616,11 +616,9 @@
     const ctx = cv.getContext('2d');
     ctx.scale(scale, scale);
 
-    // 背景 + 白色圆角卡片
-    ctx.fillStyle = TEAL;
-    ctx.fillRect(0, 0, S, S);
+    // 白色圆角卡片（卡片外透明）
     ctx.fillStyle = '#ffffff';
-    roundRect(ctx, 40, 40, S - 80, S - 80, 48);
+    roundRect(ctx, 0, 0, S, S, 60);
     ctx.fill();
 
     const padL = 90, padR = 90;           // 卡片内边距
