@@ -592,19 +592,8 @@
   });
 
   // ===== 下载排班图 =====
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
   document.getElementById('downloadBtn').addEventListener('click', () => {
-    // 1:1 方形排班图：深青背景 + 白色圆角卡片 + 大日期数字
+    // 1:1 方形排班图：白色卡片 + 大日期数字
     const scale = 2;
     const S = 1000;                       // 逻辑边长
     const font = '"Microsoft YaHei", "PingFang SC", sans-serif';
@@ -616,10 +605,9 @@
     const ctx = cv.getContext('2d');
     ctx.scale(scale, scale);
 
-    // 白色圆角卡片（卡片外透明）
+    // 白色卡片（无圆角）
     ctx.fillStyle = '#ffffff';
-    roundRect(ctx, 0, 0, S, S, 60);
-    ctx.fill();
+    ctx.fillRect(0, 0, S, S);
 
     const padL = 45, padR = 45;           // 卡片内边距
     const gridW = S - padL - padR;
@@ -642,7 +630,7 @@
     });
 
     // 日期网格（间距紧凑）
-    const gridTop = 220, gridBottom = S - 100;
+    const gridTop = 220, gridBottom = S - 45;
     const trail = (firstWeekday + daysInMonth) % 7 === 0 ? 0 : 7 - (firstWeekday + daysInMonth) % 7;
     const rows = (firstWeekday + daysInMonth + trail) / 7;
     const cellH = (gridBottom - gridTop) / rows;
