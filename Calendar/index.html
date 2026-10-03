@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>排班日历</title>
+<script src="lunar.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -21,7 +22,7 @@
     box-shadow: 0 4px 20px rgba(0,0,0,.08);
     padding: 28px;
     width: 100%;
-    max-width: 460px;
+    max-width: 520px;
   }
   h1 {
     font-size: 22px;
@@ -38,9 +39,9 @@
   .weekdays, .days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
+    gap: 4px;
   }
-  .weekdays { margin-bottom: 6px; }
+  .weekdays { margin-bottom: 4px; }
   .weekdays div {
     text-align: center;
     font-size: 13px;
@@ -48,26 +49,79 @@
     padding: 6px 0;
   }
   .day {
-    aspect-ratio: 1;
+    aspect-ratio: auto;
+    min-height: 64px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: 10px;
     cursor: pointer;
     user-select: none;
     border: 1px solid #e8e8e8;
     background: #fafafa;
     transition: all .15s;
+    position: relative;
+    padding: 6px 2px 4px;
+    gap: 2px;
   }
-  .day:hover { border-color: #4096ff; color: #4096ff; }
+  .day:hover { border-color: #4096ff; }
   .day.empty { background: transparent; border: none; cursor: default; }
+  .day-num {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #333;
+  }
+  .day-lunar {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  /* 法定休息日：浅蓝底色 */
+  .day.holiday {
+    background: #e6f4ff;
+    border-color: #91caff;
+  }
+  .day.holiday .day-num { color: #1677ff; }
+  .day.holiday .day-lunar { color: #4096ff; }
+  /* 调休上班日 */
+  .day.workday {
+    background: #fff7e6;
+    border-color: #ffd591;
+  }
+  /* 休/班 角标 */
+  .day-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 0 10px 0 8px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .day-badge.xiu { background: #1677ff; }
+  .day-badge.ban { background: #fa8c16; }
+  /* 选中态 */
   .day.selected {
     background: #1677ff;
     border-color: #1677ff;
-    color: #fff;
-    font-weight: bold;
   }
+  .day.selected .day-num { color: #fff; }
+  .day.selected .day-lunar { color: rgba(255,255,255,.85); }
+  .day.selected .day-badge.xiu { background: #fff; color: #1677ff; }
+  .day.selected .day-badge.ban { background: #fff; color: #fa8c16; }
+  /* 节日文字标红 */
+  .day-lunar.festival { color: #ff4d4f; }
+  .day.selected .day-lunar.festival { color: #fff; }
+
   .result {
     margin-top: 20px;
     padding: 12px;
@@ -150,6 +204,26 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ===== 法定节假日数据（每年国务院公布后更新）=====
+  // key: "YYYY-M-D"（M 为 1-12），value: "xiu"=休息日 / "ban"=调休上班
+  const HOLIDAY_MAP = {
+    // 2025
+    "2025-1-1":"xiu",
+    "2025-1-26":"ban","2025-1-28":"xiu","2025-1-29":"xiu","2025-1-30":"xiu","2025-1-31":"xiu","2025-2-1":"xiu","2025-2-2":"xiu","2025-2-3":"xiu","2025-2-4":"xiu","2025-2-8":"ban",
+    "2025-4-4":"xiu","2025-4-5":"xiu","2025-4-6":"xiu",
+    "2025-4-27":"ban","2025-5-1":"xiu","2025-5-2":"xiu","2025-5-3":"xiu","2025-5-4":"xiu","2025-5-5":"xiu",
+    "2025-5-31":"xiu","2025-6-1":"xiu","2025-6-2":"xiu",
+    "2025-9-28":"ban","2025-10-1":"xiu","2025-10-2":"xiu","2025-10-3":"xiu","2025-10-4":"xiu","2025-10-5":"xiu","2025-10-6":"xiu","2025-10-7":"xiu","2025-10-8":"xiu","2025-10-11":"ban",
+    // 2026
+    "2026-1-1":"xiu","2026-1-2":"xiu","2026-1-3":"xiu","2026-1-4":"ban",
+    "2026-2-14":"ban","2026-2-15":"xiu","2026-2-16":"xiu","2026-2-17":"xiu","2026-2-18":"xiu","2026-2-19":"xiu","2026-2-20":"xiu","2026-2-21":"xiu","2026-2-22":"xiu","2026-2-23":"xiu","2026-2-28":"ban",
+    "2026-4-4":"xiu","2026-4-5":"xiu","2026-4-6":"xiu",
+    "2026-4-26":"ban","2026-5-1":"xiu","2026-5-2":"xiu","2026-5-3":"xiu","2026-5-4":"xiu","2026-5-5":"xiu",
+    "2026-6-19":"xiu","2026-6-20":"xiu","2026-6-21":"xiu",
+    "2026-9-25":"xiu","2026-9-26":"xiu","2026-9-27":"xiu",
+    "2026-9-26":"ban","2026-10-1":"xiu","2026-10-2":"xiu","2026-10-3":"xiu","2026-10-4":"xiu","2026-10-5":"xiu","2026-10-6":"xiu","2026-10-7":"xiu","2026-10-8":"xiu","2026-10-10":"ban",
+  };
+
   // 计算下个月
   const now = new Date();
   const year = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
@@ -158,15 +232,45 @@
   document.getElementById('title').textContent = year + '年' + (month + 1) + '月排班';
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  // 周一开头：getDay() 周日=0，转换为 周一=0 ... 周日=6
   const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+
+  // ===== 农历/节日工具 =====
+  function getDayInfo(d) {
+    const solar = Solar.fromYmd(year, month + 1, d);
+    const lunar = solar.getLunar();
+    const key = year + '-' + (month + 1) + '-' + d;
+    const holidayType = HOLIDAY_MAP[key] || null;
+
+    // 显示文本优先级：阳历节日 > 阴历节日 > 节气 > 农历日期
+    let text = '';
+    let isFestival = false;
+    const solarFestivals = solar.getFestivals();
+    const lunarFestivals = lunar.getFestivals();
+    const jieqi = lunar.getJieQi();
+
+    if (solarFestivals.length) {
+      text = solarFestivals[0];
+      isFestival = true;
+    } else if (lunarFestivals.length) {
+      text = lunarFestivals[0];
+      isFestival = true;
+    } else if (jieqi) {
+      text = jieqi;
+      isFestival = true;
+    } else {
+      // 农历初一显示月份名
+      text = lunar.getDay() === 1 ? lunar.getMonthInChinese() + '月' : lunar.getDayInChinese();
+    }
+
+    return { text, isFestival, holidayType };
+  }
 
   const daysEl = document.getElementById('days');
   const resultEl = document.getElementById('result');
   const selected = new Set();
 
   let isDragging = false;
-  let dragSelect = true; // true=拖动选中，false=拖动取消
+  let dragSelect = true;
 
   function applyDrag(cell, d) {
     if (dragSelect && !selected.has(d)) {
@@ -187,11 +291,22 @@
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
+    const info = getDayInfo(d);
     const cell = document.createElement('div');
     cell.className = 'day';
-    cell.textContent = d;
+    if (info.holidayType === 'xiu') cell.classList.add('holiday');
+    if (info.holidayType === 'ban') cell.classList.add('workday');
+
+    let html = '';
+    if (info.holidayType) {
+      html += '<span class="day-badge ' + info.holidayType + '">' + (info.holidayType === 'xiu' ? '休' : '班') + '</span>';
+    }
+    html += '<span class="day-num">' + d + '</span>';
+    html += '<span class="day-lunar' + (info.isFestival ? ' festival' : '') + '">' + info.text + '</span>';
+    cell.innerHTML = html;
+
     cell.addEventListener('mousedown', (e) => {
-      e.preventDefault(); // 防止拖动时选中文字
+      e.preventDefault();
       isDragging = true;
       dragSelect = !selected.has(d);
       applyDrag(cell, d);
@@ -207,14 +322,14 @@
     daysEl.appendChild(cell);
   }
 
-  // 手机端滑动多选
   daysEl.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     e.preventDefault();
     const t = e.touches[0];
     const el = document.elementFromPoint(t.clientX, t.clientY);
     if (el && el.classList.contains('day') && !el.classList.contains('empty')) {
-      applyDrag(el, Number(el.textContent));
+      const num = el.querySelector('.day-num');
+      if (num) applyDrag(el, Number(num.textContent));
     }
   }, { passive: false });
 
@@ -247,7 +362,6 @@
       await navigator.clipboard.writeText(text);
       showToast('已复制：' + text);
     } catch (e) {
-      // 兼容旧浏览器
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
@@ -264,33 +378,25 @@
     renderResult();
   });
 
-  // 反向标注：输入日期串自动选中
   document.getElementById('reverseBtn').addEventListener('click', () => {
     const raw = document.getElementById('reverseInput').value.trim();
     if (!raw) { showToast('请输入日期'); return; }
-    // 提取所有数字（支持中英文逗号、空格、顿号等分隔）
     const nums = raw.match(/\d+/g);
     if (!nums) { showToast('未识别到日期数字'); return; }
     const invalid = [];
     const valid = [];
     nums.forEach(n => {
       const d = Number(n);
-      if (d >= 1 && d <= daysInMonth) {
-        valid.push(d);
-      } else {
-        invalid.push(d);
-      }
+      if (d >= 1 && d <= daysInMonth) { valid.push(d); } else { invalid.push(d); }
     });
-    // 清空当前选择，重新标注
     selected.clear();
     document.querySelectorAll('.day.selected').forEach(el => el.classList.remove('selected'));
     valid.forEach(d => {
       selected.add(d);
-      const cells = document.querySelectorAll('.day');
+      const cells = document.querySelectorAll('.day:not(.empty)');
       cells.forEach(cell => {
-        if (Number(cell.textContent) === d && !cell.classList.contains('empty')) {
-          cell.classList.add('selected');
-        }
+        const numEl = cell.querySelector('.day-num');
+        if (numEl && Number(numEl.textContent) === d) cell.classList.add('selected');
       });
     });
     renderResult();
@@ -301,11 +407,11 @@
     }
   });
 
-  // 回车也能触发反向标注
   document.getElementById('reverseInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('reverseBtn').click();
   });
 
+  // ===== 下载排班图 =====
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
@@ -332,11 +438,11 @@
     return lines;
   }
 
-  // 下载排班图
   document.getElementById('downloadBtn').addEventListener('click', () => {
-    const scale = 2; // 2倍清晰度
-    const W = 700, pad = 30, gap = 8;
+    const scale = 2;
+    const W = 700, pad = 30, gap = 6;
     const cell = (W - pad * 2 - gap * 6) / 7;
+    const cellH = cell * 1.1;
     const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
     const titleH = 50, weekH = 40, summaryPad = 20;
     const font = '"Microsoft YaHei", "PingFang SC", sans-serif';
@@ -351,16 +457,14 @@
     const lines = wrapText(ctx, summary, W - pad * 2);
     const summaryH = lines.length * 24 + summaryPad;
 
-    const gridH = rows * cell + (rows - 1) * gap;
+    const gridH = rows * cellH + (rows - 1) * gap;
     const H = pad + titleH + weekH + gridH + summaryH + pad;
     cv.width = W * scale;
     cv.height = H * scale;
     ctx.scale(scale, scale);
 
-    // 背景
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
-
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -383,19 +487,56 @@
       for (let c = 0; c < 7 && d <= daysInMonth; c++) {
         if (r * 7 + c < firstWeekday) continue;
         const x = pad + c * (cell + gap);
-        const y = gridTop + r * (cell + gap);
+        const y = gridTop + r * (cellH + gap);
         const isSel = selected.has(d);
-        roundRect(ctx, x, y, cell, cell, 8);
-        ctx.fillStyle = isSel ? '#1677ff' : '#fafafa';
+        const info = getDayInfo(d);
+        const isHoliday = info.holidayType === 'xiu';
+
+        roundRect(ctx, x, y, cell, cellH, 10);
+
+        if (isSel) {
+          ctx.fillStyle = '#1677ff';
+        } else if (isHoliday) {
+          ctx.fillStyle = '#e6f4ff';
+        } else {
+          ctx.fillStyle = '#fafafa';
+        }
         ctx.fill();
+
         if (!isSel) {
-          ctx.strokeStyle = '#e8e8e8';
+          ctx.strokeStyle = isHoliday ? '#91caff' : '#e8e8e8';
           ctx.lineWidth = 1;
           ctx.stroke();
         }
-        ctx.fillStyle = isSel ? '#fff' : '#333';
-        ctx.font = (isSel ? 'bold ' : '') + '18px ' + font;
-        ctx.fillText(d, x + cell / 2, y + cell / 2);
+
+        // 休/班角标
+        if (info.holidayType) {
+          const bx = x + cell - 18, by = y;
+          ctx.beginPath();
+          ctx.moveTo(bx + 18, by);
+          ctx.lineTo(bx + 18, by + 14);
+          ctx.lineTo(bx, by + 14);
+          ctx.lineTo(bx, by);
+          ctx.closePath();
+          ctx.fillStyle = isSel ? '#fff' : (info.holidayType === 'xiu' ? '#1677ff' : '#fa8c16');
+          ctx.fill();
+          ctx.fillStyle = isSel ? '#1677ff' : '#fff';
+          ctx.font = 'bold 10px ' + font;
+          ctx.fillText(info.holidayType === 'xiu' ? '休' : '班', bx + 9, by + 7);
+        }
+
+        // 日期数字
+        const numY = y + cellH * 0.35;
+        ctx.fillStyle = isSel ? '#fff' : (isHoliday ? '#1677ff' : '#333');
+        ctx.font = (isSel || isHoliday ? 'bold ' : '') + '20px ' + font;
+        ctx.fillText(d, x + cell / 2, numY);
+
+        // 农历/节日文字
+        const lunarY = y + cellH * 0.7;
+        ctx.fillStyle = isSel ? 'rgba(255,255,255,.85)' : (info.isFestival ? '#ff4d4f' : (isHoliday ? '#4096ff' : '#999'));
+        ctx.font = '11px ' + font;
+        ctx.fillText(info.text, x + cell / 2, lunarY);
+
         d++;
       }
     }
@@ -410,7 +551,6 @@
       sy += 24;
     });
 
-    // 导出下载
     cv.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
