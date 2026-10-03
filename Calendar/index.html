@@ -67,6 +67,15 @@
   }
   .day:hover { border-color: #4096ff; }
   .day.empty { background: transparent; border: none; cursor: default; }
+  /* 上月末/下月初的占位日期：灰色、不可选中 */
+  .day.other {
+    background: transparent;
+    border: none;
+    cursor: default;
+  }
+  .day.other .day-num { color: #ccc; font-weight: 400; }
+  .day.other .day-lunar { color: #ddd; }
+  .day.other:hover { border: none; }
   .day-num {
     font-size: 18px;
     font-weight: 600;
@@ -264,11 +273,13 @@
   let daysInMonth = 0;
   let firstWeekday = 0;
 
-  // ===== 农历/节日工具 =====
-  function getDayInfo(d) {
-    const solar = Solar.fromYmd(viewYear, viewMonth + 1, d);
+  // ===== 农历/节日工具（y/m/d 公历） =====
+  function getDayInfo(d, y, m) {
+    y = y === undefined ? viewYear : y;
+    m = m === undefined ? viewMonth : m;
+    const solar = Solar.fromYmd(y, m + 1, d);
     const lunar = solar.getLunar();
-    const key = viewYear + '-' + (viewMonth + 1) + '-' + d;
+    const key = y + '-' + (m + 1) + '-' + d;
     const holidayType = HOLIDAY_MAP[key] || null;
 
     // 显示文本优先级：阳历节日 > 阴历节日 > 节气 > 农历日期
@@ -320,10 +331,18 @@
     document.getElementById('title').textContent = viewYear + '年' + (viewMonth + 1) + '月排班';
     daysEl.innerHTML = '';
 
+    // 月初填充上月末几天
+    const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
+    const prevY = viewMonth === 0 ? viewYear - 1 : viewYear;
+    const prevM = viewMonth === 0 ? 11 : viewMonth - 1;
     for (let i = 0; i < firstWeekday; i++) {
-      const blank = document.createElement('div');
-      blank.className = 'day empty';
-      daysEl.appendChild(blank);
+      const pd = prevMonthDays - firstWeekday + 1 + i;
+      const info = getDayInfo(pd, prevY, prevM);
+      const cell = document.createElement('div');
+      cell.className = 'day other';
+      cell.innerHTML = '<span class="day-num">' + pd + '</span>'
+        + '<span class="day-lunar">' + info.text + '</span>';
+      daysEl.appendChild(cell);
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
@@ -355,6 +374,20 @@
         dragSelect = !selected.has(d);
         applyDrag(cell, d);
       }, { passive: true });
+      daysEl.appendChild(cell);
+    }
+
+    // 月末填充下月初几天，凑满整行
+    const totalCells = firstWeekday + daysInMonth;
+    const trailCount = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    const nextY = viewMonth === 11 ? viewYear + 1 : viewYear;
+    const nextM = viewMonth === 11 ? 0 : viewMonth + 1;
+    for (let d = 1; d <= trailCount; d++) {
+      const info = getDayInfo(d, nextY, nextM);
+      const cell = document.createElement('div');
+      cell.className = 'day other';
+      cell.innerHTML = '<span class="day-num">' + d + '</span>'
+        + '<span class="day-lunar">' + info.text + '</span>';
       daysEl.appendChild(cell);
     }
   }
@@ -531,14 +564,43 @@
       ctx.fillText(w, pad + i * (cell + gap) + cell / 2, pad + titleH + weekH / 2);
     });
 
-    // 日期格子
+    // 日期格子（含首尾的上月末/下月初灰色日期）
     const gridTop = pad + titleH + weekH;
-    let d = 1;
-    for (let r = 0; r < rows && d <= daysInMonth; r++) {
-      for (let c = 0; c < 7 && d <= daysInMonth; c++) {
-        if (r * 7 + c < firstWeekday) continue;
+    const trail = (firstWeekday + daysInMonth) % 7 === 0 ? 0 : 7 - (firstWeekday + daysInMonth) % 7;
+    const total = firstWeekday + daysInMonth + trail;
+    const prevMDays = new Date(viewYear, viewMonth, 0).getDate();
+    const pY = viewMonth === 0 ? viewYear - 1 : viewYear;
+    const pM = viewMonth === 0 ? 11 : viewMonth - 1;
+    const nY = viewMonth === 11 ? viewYear + 1 : viewYear;
+    const nM = viewMonth === 11 ? 0 : viewMonth + 1;
+
+    function drawOther(x, y, d, info) {
+      ctx.fillStyle = '#cccccc';
+      ctx.font = '20px ' + font;
+      ctx.fillText(d, x + cell / 2, y + cellH * 0.35);
+      ctx.fillStyle = '#dddddd';
+      ctx.font = '11px ' + font;
+      ctx.fillText(info.text, x + cell / 2, y + cellH * 0.7);
+    }
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < 7; c++) {
+        const idx = r * 7 + c;
         const x = pad + c * (cell + gap);
         const y = gridTop + r * (cellH + gap);
+
+        if (idx < firstWeekday) {
+          const pd = prevMDays - firstWeekday + 1 + idx;
+          drawOther(x, y, pd, getDayInfo(pd, pY, pM));
+          continue;
+        }
+        if (idx >= firstWeekday + daysInMonth) {
+          const nd = idx - (firstWeekday + daysInMonth) + 1;
+          drawOther(x, y, nd, getDayInfo(nd, nY, nM));
+          continue;
+        }
+
+        const d = idx - firstWeekday + 1;
         const isSel = selected.has(d);
         const info = getDayInfo(d);
         const isHoliday = info.holidayType === 'xiu';
@@ -560,7 +622,6 @@
           ctx.stroke();
         }
 
-        // 休/班角标
         if (info.holidayType) {
           const bx = x + cell - 18, by = y;
           ctx.beginPath();
@@ -576,19 +637,15 @@
           ctx.fillText(info.holidayType === 'xiu' ? '休' : '班', bx + 9, by + 7);
         }
 
-        // 日期数字
         const numY = y + cellH * 0.35;
         ctx.fillStyle = isSel ? '#fff' : (isHoliday ? '#1677ff' : '#333');
         ctx.font = (isSel || isHoliday ? 'bold ' : '') + '20px ' + font;
         ctx.fillText(d, x + cell / 2, numY);
 
-        // 农历/节日文字
         const lunarY = y + cellH * 0.7;
         ctx.fillStyle = isSel ? 'rgba(255,255,255,.85)' : (info.isFestival ? '#ff4d4f' : (isHoliday ? '#4096ff' : '#999'));
         ctx.font = '11px ' + font;
         ctx.fillText(info.text, x + cell / 2, lunarY);
-
-        d++;
       }
     }
 
