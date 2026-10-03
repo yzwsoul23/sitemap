@@ -621,7 +621,7 @@
     roundRect(ctx, 0, 0, S, S, 60);
     ctx.fill();
 
-    const padL = 60, padR = 60;           // 卡片内边距
+    const padL = 45, padR = 45;           // 卡片内边距
     const gridW = S - padL - padR;
     const cellW = gridW / 7;
 
@@ -629,20 +629,20 @@
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = INK;
-    ctx.font = 'bold 72px ' + font;
-    ctx.fillText((viewMonth + 1) + '月', padL, 105);
+    ctx.font = 'bold 60px ' + font;
+    ctx.fillText((viewMonth + 1) + '月', padL, 90);
 
     // 星期头
-    const weekY = 185;
+    const weekY = 160;
     ctx.textAlign = 'center';
-    ctx.font = 'bold 32px ' + font;
+    ctx.font = 'bold 38px ' + font;
     ctx.fillStyle = INK;
     ['一','二','三','四','五','六','日'].forEach((w, i) => {
       ctx.fillText(w, padL + i * cellW + cellW / 2, weekY);
     });
 
     // 日期网格
-    const gridTop = 230, gridBottom = S - 40;
+    const gridTop = 200, gridBottom = S - 30;
     const trail = (firstWeekday + daysInMonth) % 7 === 0 ? 0 : 7 - (firstWeekday + daysInMonth) % 7;
     const rows = (firstWeekday + daysInMonth + trail) / 7;
     const cellH = (gridBottom - gridTop) / rows;
@@ -654,7 +654,7 @@
         const idx = r * 7 + c;
         const cx = padL + c * cellW + cellW / 2;
         const cy = gridTop + r * cellH + cellH / 2;
-        ctx.font = 'bold 52px ' + font;
+        ctx.font = 'bold 60px ' + font;
 
         if (idx < firstWeekday) {          // 上月末
           ctx.fillStyle = GRAY;
