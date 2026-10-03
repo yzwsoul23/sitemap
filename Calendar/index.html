@@ -603,157 +603,90 @@
     ctx.closePath();
   }
 
-  function wrapText(ctx, text, maxWidth) {
-    const lines = [];
-    let line = '';
-    for (const ch of text) {
-      if (line && ctx.measureText(line + ch).width > maxWidth) {
-        lines.push(line);
-        line = ch;
-      } else {
-        line += ch;
-      }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
   document.getElementById('downloadBtn').addEventListener('click', () => {
+    // 1:1 方形排班图：深青背景 + 白色圆角卡片 + 大日期数字
     const scale = 2;
-    const W = 700, pad = 30, gap = 6;
-    const cell = (W - pad * 2 - gap * 6) / 7;
-    const cellH = cell * 1.1;
-    const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
-    const titleH = 50, weekH = 40, summaryPad = 20;
+    const S = 1000;                       // 逻辑边长
     const font = '"Microsoft YaHei", "PingFang SC", sans-serif';
-
-    const list = getSorted();
-    const summary = list.length ? '已选 ' + list.length + ' 天：' + list.join('，') : '未选择日期';
+    const BLUE = '#3f83f8', TEAL = '#2e5a52', INK = '#222', GRAY = '#c9ced6';
 
     const cv = document.createElement('canvas');
+    cv.width = S * scale;
+    cv.height = S * scale;
     const ctx = cv.getContext('2d');
-    const summaryFont = '16px ' + font;
-    ctx.font = summaryFont;
-    const lines = wrapText(ctx, summary, W - pad * 2);
-    const summaryH = lines.length * 24 + summaryPad;
-
-    const gridH = rows * cellH + (rows - 1) * gap;
-    const H = pad + titleH + weekH + gridH + summaryH + pad;
-    cv.width = W * scale;
-    cv.height = H * scale;
     ctx.scale(scale, scale);
 
+    // 背景 + 白色圆角卡片
+    ctx.fillStyle = TEAL;
+    ctx.fillRect(0, 0, S, S);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    roundRect(ctx, 40, 40, S - 80, S - 80, 48);
+    ctx.fill();
 
-    // 标题
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 26px ' + font;
-    ctx.fillText(viewYear + '年' + (viewMonth + 1) + '月排班', W / 2, pad + titleH / 2);
+    const padL = 90, padR = 90;           // 卡片内边距
+    const gridW = S - padL - padR;
+    const cellW = gridW / 7;
+
+    // 标题：X月
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = INK;
+    ctx.font = 'bold 60px ' + font;
+    ctx.fillText((viewMonth + 1) + '月', padL, 132);
 
     // 星期头
-    ctx.fillStyle = '#999';
-    ctx.font = '14px ' + font;
+    const weekY = 225;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 26px ' + font;
+    ctx.fillStyle = INK;
     ['一','二','三','四','五','六','日'].forEach((w, i) => {
-      ctx.fillText(w, pad + i * (cell + gap) + cell / 2, pad + titleH + weekH / 2);
+      ctx.fillText(w, padL + i * cellW + cellW / 2, weekY);
     });
 
-    // 日期格子（含首尾的上月末/下月初灰色日期）
-    const gridTop = pad + titleH + weekH;
+    // 日期网格
+    const gridTop = 290, gridBottom = S - 70;
     const trail = (firstWeekday + daysInMonth) % 7 === 0 ? 0 : 7 - (firstWeekday + daysInMonth) % 7;
-    const total = firstWeekday + daysInMonth + trail;
-    const prevMDays = new Date(viewYear, viewMonth, 0).getDate();
-    const pY = viewMonth === 0 ? viewYear - 1 : viewYear;
-    const pM = viewMonth === 0 ? 11 : viewMonth - 1;
-    const nY = viewMonth === 11 ? viewYear + 1 : viewYear;
-    const nM = viewMonth === 11 ? 0 : viewMonth + 1;
+    const rows = (firstWeekday + daysInMonth + trail) / 7;
+    const cellH = (gridBottom - gridTop) / rows;
 
-    function drawOther(x, y, d, info) {
-      ctx.fillStyle = '#cccccc';
-      ctx.font = '20px ' + font;
-      ctx.fillText(d, x + cell / 2, y + cellH * 0.35);
-      ctx.fillStyle = '#dddddd';
-      ctx.font = '11px ' + font;
-      ctx.fillText(info.text, x + cell / 2, y + cellH * 0.7);
-    }
+    const prevMDays = new Date(viewYear, viewMonth, 0).getDate();
+    const today = new Date();
+    const isThisMonth = today.getFullYear() === viewYear && today.getMonth() === viewMonth;
+    const todayD = today.getDate();
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < 7; c++) {
         const idx = r * 7 + c;
-        const x = pad + c * (cell + gap);
-        const y = gridTop + r * (cellH + gap);
+        const cx = padL + c * cellW + cellW / 2;
+        const cy = gridTop + r * cellH + cellH / 2;
+        ctx.font = 'bold 40px ' + font;
 
-        if (idx < firstWeekday) {
-          const pd = prevMDays - firstWeekday + 1 + idx;
-          drawOther(x, y, pd, getDayInfo(pd, pY, pM));
+        if (idx < firstWeekday) {          // 上月末
+          ctx.fillStyle = GRAY;
+          ctx.fillText(prevMDays - firstWeekday + 1 + idx, cx, cy);
           continue;
         }
-        if (idx >= firstWeekday + daysInMonth) {
-          const nd = idx - (firstWeekday + daysInMonth) + 1;
-          drawOther(x, y, nd, getDayInfo(nd, nY, nM));
+        if (idx >= firstWeekday + daysInMonth) {  // 下月初
+          ctx.fillStyle = GRAY;
+          ctx.fillText(idx - (firstWeekday + daysInMonth) + 1, cx, cy);
           continue;
         }
 
         const d = idx - firstWeekday + 1;
-        const isSel = selected.has(d);
-        const info = getDayInfo(d);
-        const isHoliday = info.holidayType === 'xiu';
-
-        roundRect(ctx, x, y, cell, cellH, 10);
-
-        if (isSel) {
-          ctx.fillStyle = '#1677ff';
-        } else if (isHoliday) {
-          ctx.fillStyle = '#e6f4ff';
-        } else {
-          ctx.fillStyle = '#fafafa';
-        }
-        ctx.fill();
-
-        if (!isSel) {
-          ctx.strokeStyle = isHoliday ? '#91caff' : '#e8e8e8';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        }
-
-        if (info.holidayType) {
-          const bx = x + cell - 18, by = y;
-          ctx.beginPath();
-          ctx.moveTo(bx + 18, by);
-          ctx.lineTo(bx + 18, by + 14);
-          ctx.lineTo(bx, by + 14);
-          ctx.lineTo(bx, by);
-          ctx.closePath();
-          ctx.fillStyle = isSel ? '#fff' : (info.holidayType === 'xiu' ? '#1677ff' : '#fa8c16');
+        const isToday = isThisMonth && d === todayD;
+        if (isToday) {                     // 今天：蓝底白字圆角块
+          ctx.fillStyle = BLUE;
+          roundRect(ctx, cx - 32, cy - 32, 64, 64, 14);
           ctx.fill();
-          ctx.fillStyle = isSel ? '#1677ff' : '#fff';
-          ctx.font = 'bold 10px ' + font;
-          ctx.fillText(info.holidayType === 'xiu' ? '休' : '班', bx + 9, by + 7);
+          ctx.fillStyle = '#fff';
+        } else if (selected.has(d)) {      // 排班选中：蓝字
+          ctx.fillStyle = BLUE;
+        } else {
+          ctx.fillStyle = INK;
         }
-
-        const numY = y + cellH * 0.35;
-        ctx.fillStyle = isSel ? '#fff' : (isHoliday ? '#1677ff' : '#333');
-        ctx.font = (isSel || isHoliday ? 'bold ' : '') + '20px ' + font;
-        ctx.fillText(d, x + cell / 2, numY);
-
-        const lunarY = y + cellH * 0.7;
-        ctx.fillStyle = isSel ? 'rgba(255,255,255,.85)' : (info.isFestival ? '#ff4d4f' : (isHoliday ? '#4096ff' : '#999'));
-        ctx.font = '11px ' + font;
-        ctx.fillText(info.text, x + cell / 2, lunarY);
+        ctx.fillText(d, cx, cy);
       }
     }
-
-    // 底部汇总
-    ctx.font = summaryFont;
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#333';
-    let sy = gridTop + gridH + summaryPad + 12;
-    lines.forEach(line => {
-      ctx.fillText(line, pad, sy);
-      sy += 24;
-    });
 
     cv.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
