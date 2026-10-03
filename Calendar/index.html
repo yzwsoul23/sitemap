@@ -266,7 +266,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ===== 法定节假日数据（每年国务院公布后更新）=====
+  // ===== 法定节假日数据 =====
+  // 【更新说明】每年国务院公布后更新，通过 timor.tech API 获取整年数据：
+  //   https://timor.tech/api/holiday/year/2027/   ← 把年份换成目标年
+  //   支持 HTTP/HTTPS，API 返回 JSON，holiday 字段：true=休，false=班
+  //   只需在每年年末获取一次次年数据，手动粘贴到下方 HOLIDAY_MAP
   // key: "YYYY-M-D"（M 为 1-12），value: "xiu"=休息日 / "ban"=调休上班
   const HOLIDAY_MAP = {
     // 2025
