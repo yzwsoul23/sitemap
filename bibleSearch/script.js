@@ -629,34 +629,42 @@ function showToast(msg) {
     toastTimer = setTimeout(() => el.classList.remove('show'), 1500);
 }
 
-// ===== 数据加载：jsDelivr 国内节点优先，失败自动回退 =====
+// ===== 数据加载：多镜像并发竞速，谁快用谁 =====
 // 更新经文数据后 bump 此版本号（也可绕过 CDN 缓存）
 const BIBLE_DATA_VERSION = '20261005';
-// 镜像顺序：Fastly 国内节点 → 通用 jsDelivr → 同源 GitHub Pages
+// 并发竞速：同时向所有源发请求，第一个成功的胜出，其余取消
 const DATA_MIRRORS = [
     'https://fastly.jsdelivr.net/gh/yzwsoul23/sitemap@main/bibleSearch/',
+    'https://gcore.jsdelivr.net/gh/yzwsoul23/sitemap@main/bibleSearch/',
     'https://cdn.jsdelivr.net/gh/yzwsoul23/sitemap@main/bibleSearch/',
-    ''
+    'https://raw.gitmirror.com/yzwsoul23/sitemap/main/bibleSearch/',
+    'https://cdn.statically.io/gh/yzwsoul23/sitemap/main/bibleSearch/',
+    ''  // 同源 GitHub Pages，兜底
 ];
 
-// 通用 fetch：逐镜像尝试 + 单源超时（国内访问 GitHub Pages 经常 7s+）
-async function fetchWithRetry(relPath, timeoutMs = 6000) {
-    let lastErr = null;
-    for (const base of DATA_MIRRORS) {
+// 通用 fetch：多源并发竞速，第一个成功的胜出，其余自动取消
+async function fetchWithRetry(relPath, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const overall = setTimeout(() => controller.abort(), timeoutMs);
+
+    const requests = DATA_MIRRORS.map(base => {
         const url = base + relPath + (base ? '?v=' + BIBLE_DATA_VERSION : '');
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            const response = await fetch(url, { signal: controller.signal });
-            clearTimeout(timer);
-            if (response.ok) return response;
-            lastErr = new Error('HTTP ' + response.status);
-        } catch (error) {
-            clearTimeout(timer);
-            lastErr = error;
-        }
+        return fetch(url, { signal: controller.signal }).then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res;
+        });
+    });
+
+    try {
+        const res = await Promise.any(requests);
+        clearTimeout(overall);
+        controller.abort();  // 胜出后取消其它源
+        return res;
+    } catch (agg) {
+        clearTimeout(overall);
+        const reasons = (agg.errors || []).slice(0, 3).map(e => e.message).join('; ');
+        throw new Error('所有数据源均失败: ' + reasons);
     }
-    throw lastErr;
 }
 
 // 按需加载经卷数据（同一本书并发调用共享同一个请求，不重复下载）
