@@ -642,28 +642,45 @@ const DATA_MIRRORS = [
     ''  // 同源 GitHub Pages，兜底
 ];
 
-// 通用 fetch：多源并发竞速，第一个成功的胜出，其余自动取消
+// 通用 fetch：多源并发竞速，第一个成功的胜出，只取消其它源
+// 注意：每个源必须用独立 AbortController——若共用，胜出后 abort 会掐断
+// 获胜响应正在传输的 body，导致大文件 response.json() 失败（"未找到经文"）
 async function fetchWithRetry(relPath, timeoutMs = 20000) {
-    const controller = new AbortController();
-    const overall = setTimeout(() => controller.abort(), timeoutMs);
+    const overallTimer = { done: false };
 
     const requests = DATA_MIRRORS.map(base => {
         const url = base + relPath + (base ? '?v=' + BIBLE_DATA_VERSION : '');
-        return fetch(url, { signal: controller.signal }).then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res;
-        });
+        const ctrl = new AbortController();
+        const p = fetch(url, { signal: ctrl.signal })
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return { res, ctrl };
+            });
+        p._ctrl = ctrl;
+        return p;
+    });
+
+    const overall = new Promise((_, reject) => {
+        setTimeout(() => {
+            if (!overallTimer.done) reject(new Error('加载超时'));
+        }, timeoutMs);
     });
 
     try {
-        const res = await Promise.any(requests);
-        clearTimeout(overall);
-        controller.abort();  // 胜出后取消其它源
-        return res;
+        // 竞速：任一源成功（含独立controller），或整体超时
+        const winner = await Promise.race([
+            Promise.any(requests),
+            overall
+        ]);
+        overallTimer.done = true;
+        // 只取消其它源，获胜者的 controller 不动，保证 body 可完整读取
+        requests.forEach(p => { if (p._ctrl !== winner.ctrl) p._ctrl.abort(); });
+        return winner.res;
     } catch (agg) {
-        clearTimeout(overall);
+        overallTimer.done = true;
+        requests.forEach(p => p._ctrl.abort());
         const reasons = (agg.errors || []).slice(0, 3).map(e => e.message).join('; ');
-        throw new Error('所有数据源均失败: ' + reasons);
+        throw new Error('所有数据源均失败: ' + (reasons || agg.message));
     }
 }
 
