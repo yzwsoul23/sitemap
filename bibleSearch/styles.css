@@ -278,6 +278,7 @@ input:focus {
         0 5px 15px rgba(0, 0, 0, 0.1);
     position: relative;
     mix-blend-mode: multiply;
+    font-size: var(--bible-fs, 16px);
 }
 
 .result::before {
@@ -314,7 +315,7 @@ input:focus {
     transition: all 0.2s;
     color: var(--text-brown);
     font-family: 'SimSun', '宋体', serif;
-    font-size: 16px;
+    font-size: var(--bible-fs, 16px);
     font-weight: 1000;
     border-left: 3px solid transparent;
     position: relative;
@@ -385,7 +386,7 @@ input:focus {
     right: 0;
     color: rgba(51, 34, 17, 0.15);
     font-family: 'SimSun', '宋体', serif;
-    font-size: 16px;
+    font-size: var(--bible-fs, 16px);
     font-weight: 1000;
     line-height: 2;
     padding: 30px 35px;

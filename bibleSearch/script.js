@@ -75,13 +75,14 @@ let sectionHeadingsData = null;  // 段落标题数据
 
 // 复制设置
 let copySettings = {
+    settingsVersion: 2,
     withVerseNumbers: true,
     eachVerseNewline: false,
     shortBookName: true,
     referencePosition: 'single-top',
     bracketStyle: '【】',
     displayMode: 'verse',
-    showGhostText: true,
+    showGhostText: false,
     enableSemanticColoring: true,
     enableNameUnderline: true,
     showSectionTitles: true,
@@ -615,6 +616,7 @@ let currentStartVerse = null;
 let currentEndVerse = null;
 let inputState = 'book';
 let previousValue = '';
+let displaySeq = 0;  // 每次显示经文递增，防止异步补插标题错位
 
 // ===== 顶部轻提示 =====
 let toastTimer = null;
@@ -667,21 +669,27 @@ async function loadBook(bookName) {
     return false;
 }
 
-// 加载段落小标题数据
-async function loadSectionHeadings() {
+// 加载段落小标题数据（全局共享同一个请求，多处调用不重复下载）
+let headingsPromise = null;
+function loadSectionHeadings() {
     if (sectionHeadingsData !== null) {
-        return sectionHeadingsData;
+        return Promise.resolve(sectionHeadingsData);
     }
-    try {
-        const response = await fetchWithRetry('section_headings.json');
-        const data = await response.json();
-        sectionHeadingsData = data.books || {};
-        console.log(`已加载段落标题数据，共 ${Object.keys(sectionHeadingsData).length} 卷`);
-    } catch (error) {
-        console.warn('加载段落标题失败（可能文件不存在）:', error.message);
-        sectionHeadingsData = {};
+    if (!headingsPromise) {
+        headingsPromise = (async () => {
+            try {
+                const response = await fetchWithRetry('section_headings.json');
+                const data = await response.json();
+                sectionHeadingsData = data.books || {};
+                console.log(`已加载段落标题数据，共 ${Object.keys(sectionHeadingsData).length} 卷`);
+            } catch (error) {
+                console.warn('加载段落标题失败（可能文件不存在）:', error.message);
+                sectionHeadingsData = {};
+            }
+            return sectionHeadingsData;
+        })();
     }
-    return sectionHeadingsData;
+    return headingsPromise;
 }
 
 // 获取某卷某章的段落标题
@@ -756,6 +764,7 @@ function appendGhostLayers(container, ghostContent) {
 
 // 显示经文
 async function displayVerse(bookName, chapter, startVerse, endVerse) {
+    const seq = ++displaySeq;
     result.innerHTML = '<p>加载中...</p>';
     
     const loaded = await loadBook(bookName);
@@ -768,23 +777,36 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
 
     result.innerHTML = '';
     const chapterData = bibleData[bookName][chapter];
-    
-    // 加载段落标题数据
-    if (copySettings.showSectionTitles) {
-        await loadSectionHeadings();
-    }
-    const chapterHeadings = getChapterHeadings(bookName, chapter);
+
+    // 段落标题：数据已就绪才同步插入，否则经文先渲染、标题到达后补插（不阻塞）
+    const headingsReady = copySettings.showSectionTitles && sectionHeadingsData !== null;
     const headingVerseMap = {};  // verse -> title
-    // BibleGateway CUVMPS 只有 verse 1 缺 versenum 标签，后面 verse 全对
-    // 所以：如果第一个标题 verse=2，那它就是 verse 1 的标题，只减这一个
-    const sortedHeadings = [...chapterHeadings].sort((a, b) => a[0] - b[0]);
-    sortedHeadings.forEach(([v, t], idx) => {
-        if (idx === 0 && v === 2) {
-            headingVerseMap[1] = t;
-        } else {
-            headingVerseMap[v] = t;
-        }
-    });
+    function buildHeadingMap() {
+        const chapterHeadings = getChapterHeadings(bookName, chapter);
+        // BibleGateway CUVMPS 只有 verse 1 缺 versenum 标签，后面 verse 全对
+        // 所以：如果第一个标题 verse=2，那它就是 verse 1 的标题，只减这一个
+        const sortedHeadings = [...chapterHeadings].sort((a, b) => a[0] - b[0]);
+        sortedHeadings.forEach(([v, t], idx) => {
+            if (idx === 0 && v === 2) {
+                headingVerseMap[1] = t;
+            } else {
+                headingVerseMap[v] = t;
+            }
+        });
+    }
+    if (headingsReady) buildHeadingMap();
+
+    // 在指定节的经文元素前插入标题
+    function insertTitleBeforeVerse(v) {
+        if (result.querySelector('[data-title-for="' + v + '"]')) return;
+        const target = result.querySelector('.verse[data-verse="' + v + '"]');
+        if (!target) return;
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'section-title';
+        titleDiv.dataset.titleFor = v;
+        titleDiv.textContent = headingVerseMap[v];
+        result.insertBefore(titleDiv, target);
+    }
     
     // 根据显示模式处理
     if (copySettings.displayMode === 'paragraph') {
@@ -822,16 +844,9 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
         for (let idx = 0; idx < verseNumbers.length; idx++) {
             const i = verseNumbers[idx];
 
-            // 插入段落小标题
-            if (copySettings.showSectionTitles && headingVerseMap[i]) {
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'section-title';
-                titleDiv.textContent = headingVerseMap[i];
-                result.appendChild(titleDiv);
-            }
-
             const verseElement = document.createElement('span');
             verseElement.className = 'verse';
+            verseElement.dataset.verse = i;
 
             // 添加节号
             const numberSup = document.createElement('sup');
@@ -847,6 +862,8 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
             }
 
             result.appendChild(verseElement);
+            // 标题数据已就绪时立即插入
+            if (headingsReady && headingVerseMap[i]) insertTitleBeforeVerse(i);
             ghostContent += `${i} ${chapterData[i]} `;
         }
 
@@ -886,16 +903,9 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
         for (let idx = 0; idx < verseNumbers.length; idx++) {
             const i = verseNumbers[idx];
 
-            // 插入段落小标题
-            if (copySettings.showSectionTitles && headingVerseMap[i]) {
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'section-title';
-                titleDiv.textContent = headingVerseMap[i];
-                result.appendChild(titleDiv);
-            }
-
             const verseElement = document.createElement('div');
             verseElement.className = 'verse';
+            verseElement.dataset.verse = i;
 
             // 添加节号
             const numberSpan = document.createElement('span');
@@ -911,11 +921,22 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
             }
 
             result.appendChild(verseElement);
+            // 标题数据已就绪时立即插入
+            if (headingsReady && headingVerseMap[i]) insertTitleBeforeVerse(i);
             verseGhostContent += `${i} ${chapterData[i]} `;
         }
 
         // 添加多层透字效果
         appendGhostLayers(result, verseGhostContent);
+    }
+
+    // 标题数据未就绪：经文已先显示，数据到达后补插标题（用户已切换则放弃）
+    if (copySettings.showSectionTitles && !headingsReady) {
+        loadSectionHeadings().then(() => {
+            if (seq !== displaySeq) return;
+            buildHeadingMap();
+            Object.keys(headingVerseMap).forEach(v => insertTitleBeforeVerse(Number(v)));
+        });
     }
 
     // 显示复制按钮和下载按钮
@@ -1230,6 +1251,22 @@ function copyVerse() {
     });
 }
 
+// 按需加载 html2canvas（仅点击下载图片时）
+let h2cPromise = null;
+function loadHtml2Canvas() {
+    if (window.html2canvas) return Promise.resolve();
+    if (!h2cPromise) {
+        h2cPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'lib/html2canvas.min.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('html2canvas 加载失败'));
+            document.body.appendChild(s);
+        });
+    }
+    return h2cPromise;
+}
+
 // 下载经文为图片
 async function downloadAsImage() {
     if (!currentBook || !currentChapter) return;
@@ -1240,10 +1277,7 @@ async function downloadAsImage() {
     downloadBtn.disabled = true;
 
     try {
-        // 检查 html2canvas 是否可用
-        if (typeof html2canvas === 'undefined') {
-            throw new Error('html2canvas 库未加载');
-        }
+        await loadHtml2Canvas();
 
         // 根据设备宽度自适应截图区域宽度和边距
         const screenWidth = window.innerWidth;
@@ -1633,6 +1667,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 加载保存的设置
     loadSettings();
+
+    // 页面空闲时静默预取段落标题（295KB），用户选完章节时通常已就绪
+    const ric = window.requestIdleCallback || (cb => setTimeout(cb, 1500));
+    ric(() => loadSectionHeadings());
     
     // === 滑动切换章节（跟手动画 + 中央文字提示） ===
     const swipeHint = document.getElementById('swipe-hint');
@@ -1847,6 +1885,11 @@ function loadSettings() {
     if (saved) {
         try {
             const loaded = JSON.parse(saved);
+            // 轻量迁移：v2 之前透字默认开启，升级后对老用户强制关闭一次
+            if (!loaded.settingsVersion || loaded.settingsVersion < 2) {
+                loaded.showGhostText = false;
+                loaded.settingsVersion = 2;
+            }
             copySettings = { ...copySettings, ...loaded };
         } catch (e) {
             console.error('加载设置失败:', e);
@@ -1859,16 +1902,7 @@ function loadSettings() {
     }
 }
 
-// 应用字号设置到经文显示区域
+// 应用字号设置：CSS 变量，现有及后续新建元素统一跟随
 function applyFontSize(size) {
-    const resultContainer = document.getElementById('result');
-    if (resultContainer) {
-        resultContainer.style.fontSize = size + 'px';
-    }
-
-    // 同时更新 .verse 的字号
-    const verses = document.querySelectorAll('.verse');
-    verses.forEach(verse => {
-        verse.style.fontSize = size + 'px';
-    });
+    document.documentElement.style.setProperty('--bible-fs', size + 'px');
 }

@@ -67,7 +67,7 @@
                 </div>
                 <div class="setting-item">
                     <label>
-                        <input type="checkbox" id="setting-show-ghost-text" checked>
+                        <input type="checkbox" id="setting-show-ghost-text">
                         显示透字效果
                     </label>
                 </div>
@@ -181,11 +181,11 @@
                 <div class="demo-gifs">
                     <div class="demo-item">
                         <p>快捷输入</p>
-                        <img src="快速输入1.gif" alt="快捷输入演示">
+                        <img src="快速输入1.gif" alt="快捷输入演示" loading="lazy">
                     </div>
                     <div class="demo-item">
                         <p>整章输入</p>
-                        <img src="快速输入全章.gif" alt="整章输入演示">
+                        <img src="快速输入全章.gif" alt="整章输入演示" loading="lazy">
                     </div>
                 </div>
                 
@@ -266,7 +266,7 @@
         </div>
     </div>
     
-    <script src="lib/html2canvas.min.js"></script>
+    <!-- html2canvas 改为点击下载时按需加载，不拖慢首屏 -->
     <script src="bible_names.js"></script>
     <script src="pretext-bible.js"></script>
     <script src="script.js"></script>
