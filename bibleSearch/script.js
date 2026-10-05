@@ -1438,23 +1438,22 @@ books.forEach(book => {
 
 const ALL_LETTERS = Object.keys(LETTER_TO_BOOKS).sort();
 
-// 渲染字母轴（只显示有书卷的字母）
+// 绑定字母轴事件（字母已静态写入 HTML，无需 JS 渲染；事件委托到 bar）
 function initAlphaSidebar() {
     const bar = document.getElementById('alpha-bar');
     if (!bar) return;
-    bar.innerHTML = '';
-    ALL_LETTERS.forEach(letter => {
-        const div = document.createElement('div');
-        div.className = 'alpha-item has-books';
-        div.textContent = letter;
-        div.dataset.letter = letter;
-        div.addEventListener('click', () => openPicker(letter));
-        bar.appendChild(div);
+
+    // 点击字母打开面板（委托，匹配静态元素）
+    bar.addEventListener('click', (e) => {
+        const item = e.target.closest('.alpha-item');
+        if (!item) return;
+        const letter = item.dataset.letter;
+        if (letter) openPicker(letter);
     });
-    
+
     // 触摸滑动快速定位
     const sidebar = document.getElementById('alpha-sidebar');
-    
+
     function handleTouch(e) {
         const point = e.touches ? e.touches[0] : e;
         const rect = bar.getBoundingClientRect();
@@ -1466,7 +1465,7 @@ function initAlphaSidebar() {
         items.forEach(i => i.classList.toggle('active', i.dataset.letter === letter));
         openPicker(letter, true);
     }
-    
+
     sidebar.addEventListener('touchstart', handleTouch, { passive: true });
     sidebar.addEventListener('touchmove', handleTouch, { passive: true });
     sidebar.addEventListener('mousemove', (e) => {
