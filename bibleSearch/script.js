@@ -629,10 +629,21 @@ function showToast(msg) {
     toastTimer = setTimeout(() => el.classList.remove('show'), 1500);
 }
 
-// 通用 fetch：超时 + 自动重试（应对国内访问 GitHub Pages 偶发卡死）
-async function fetchWithRetry(url, retries = 3, timeoutMs = 8000) {
+// ===== 数据加载：jsDelivr 国内节点优先，失败自动回退 =====
+// 更新经文数据后 bump 此版本号（也可绕过 CDN 缓存）
+const BIBLE_DATA_VERSION = '20261005';
+// 镜像顺序：Fastly 国内节点 → 通用 jsDelivr → 同源 GitHub Pages
+const DATA_MIRRORS = [
+    'https://fastly.jsdelivr.net/gh/yzwsoul23/sitemap@main/bibleSearch/',
+    'https://cdn.jsdelivr.net/gh/yzwsoul23/sitemap@main/bibleSearch/',
+    ''
+];
+
+// 通用 fetch：逐镜像尝试 + 单源超时（国内访问 GitHub Pages 经常 7s+）
+async function fetchWithRetry(relPath, timeoutMs = 6000) {
     let lastErr = null;
-    for (let attempt = 0; attempt < retries; attempt++) {
+    for (const base of DATA_MIRRORS) {
+        const url = base + relPath + (base ? '?v=' + BIBLE_DATA_VERSION : '');
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
@@ -644,29 +655,34 @@ async function fetchWithRetry(url, retries = 3, timeoutMs = 8000) {
             clearTimeout(timer);
             lastErr = error;
         }
-        // 重试前短暂等待
-        await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
     }
     throw lastErr;
 }
 
-// 按需加载经卷数据
-async function loadBook(bookName) {
+// 按需加载经卷数据（同一本书并发调用共享同一个请求，不重复下载）
+const bookPromises = {};
+function loadBook(bookName) {
     if (loadedBooks[bookName]) {
-        return true;
+        return Promise.resolve(true);
     }
-
-    try {
-        const response = await fetchWithRetry('data/' + encodeURIComponent(bookName) + '.json');
-        const data = await response.json();
-        bibleData[bookName] = data.chapters;
-        loadedBooks[bookName] = true;
-        console.log(`已加载: ${bookName}`);
-        return true;
-    } catch (error) {
-        console.error(`加载${bookName}失败:`, error);
+    if (!bookPromises[bookName]) {
+        bookPromises[bookName] = (async () => {
+            const t0 = performance.now();
+            try {
+                const response = await fetchWithRetry('data/' + encodeURIComponent(bookName) + '.json');
+                const data = await response.json();
+                bibleData[bookName] = data.chapters;
+                loadedBooks[bookName] = true;
+                console.log(`已加载 ${bookName}，耗时 ${Math.round(performance.now() - t0)}ms`);
+                return true;
+            } catch (error) {
+                console.error(`加载${bookName}失败:`, error);
+                delete bookPromises[bookName];
+                return false;
+            }
+        })();
     }
-    return false;
+    return bookPromises[bookName];
 }
 
 // 加载段落小标题数据（全局共享同一个请求，多处调用不重复下载）
