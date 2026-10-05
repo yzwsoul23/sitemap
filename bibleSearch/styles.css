@@ -398,6 +398,74 @@ input:focus {
     overflow: hidden;
 }
 
+/* ===== 滑动章节提示（屏幕中央） ===== */
+.swipe-hint {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 18px 26px;
+    background: rgba(30, 20, 15, 0.72);
+    border-radius: 16px;
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity 0.15s, transform 0.15s;
+    backdrop-filter: blur(4px);
+}
+.swipe-hint .swipe-arrow {
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1;
+}
+.swipe-hint .swipe-text {
+    font-size: 15px;
+    font-family: 'SimSun', '宋体', serif;
+    letter-spacing: 1px;
+}
+.swipe-hint.blocked {
+    background: rgba(120, 60, 60, 0.6);
+}
+
+/* ===== 顶部轻提示 ===== */
+.app-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(30, 20, 15, 0.85);
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 22px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1001;
+    transition: opacity 0.25s, transform 0.25s;
+}
+.app-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 章节滑动过渡 */
+.result.swiping {
+    transition: transform 0.22s ease-out;
+    will-change: transform;
+}
+@keyframes chapter-fade-in {
+    from { opacity: 0.3; }
+    to   { opacity: 1; }
+}
+.result.chapter-entering {
+    animation: chapter-fade-in 0.25s ease-out;
+}
+
 /* 语义化着色样式（基于Monarch词法分析器） */
 .bible-quote {
     color: #1E40AF;

@@ -616,21 +616,51 @@ let currentEndVerse = null;
 let inputState = 'book';
 let previousValue = '';
 
+// ===== 顶部轻提示 =====
+let toastTimer = null;
+function showToast(msg) {
+    const el = document.getElementById('app-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+// 通用 fetch：超时 + 自动重试（应对国内访问 GitHub Pages 偶发卡死）
+async function fetchWithRetry(url, retries = 3, timeoutMs = 8000) {
+    let lastErr = null;
+    for (let attempt = 0; attempt < retries; attempt++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timer);
+            if (response.ok) return response;
+            lastErr = new Error('HTTP ' + response.status);
+        } catch (error) {
+            clearTimeout(timer);
+            lastErr = error;
+        }
+        // 重试前短暂等待
+        await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+    }
+    throw lastErr;
+}
+
 // 按需加载经卷数据
 async function loadBook(bookName) {
     if (loadedBooks[bookName]) {
         return true;
     }
-    
+
     try {
-        const response = await fetch(`data/${bookName}.json`);
-        if (response.ok) {
-            const data = await response.json();
-            bibleData[bookName] = data.chapters;
-            loadedBooks[bookName] = true;
-            console.log(`已加载: ${bookName}`);
-            return true;
-        }
+        const response = await fetchWithRetry('data/' + encodeURIComponent(bookName) + '.json');
+        const data = await response.json();
+        bibleData[bookName] = data.chapters;
+        loadedBooks[bookName] = true;
+        console.log(`已加载: ${bookName}`);
+        return true;
     } catch (error) {
         console.error(`加载${bookName}失败:`, error);
     }
@@ -643,14 +673,10 @@ async function loadSectionHeadings() {
         return sectionHeadingsData;
     }
     try {
-        const response = await fetch('section_headings.json');
-        if (response.ok) {
-            const data = await response.json();
-            sectionHeadingsData = data.books || {};
-            console.log(`已加载段落标题数据，共 ${Object.keys(sectionHeadingsData).length} 卷`);
-        } else {
-            sectionHeadingsData = {};
-        }
+        const response = await fetchWithRetry('section_headings.json');
+        const data = await response.json();
+        sectionHeadingsData = data.books || {};
+        console.log(`已加载段落标题数据，共 ${Object.keys(sectionHeadingsData).length} 卷`);
     } catch (error) {
         console.warn('加载段落标题失败（可能文件不存在）:', error.message);
         sectionHeadingsData = {};
@@ -708,6 +734,24 @@ function selectBook(book) {
     input.focus();
     // 选择经卷后立即加载
     loadBook(book.name);
+}
+
+// 多层透字效果（两种显示模式共用）
+function appendGhostLayers(container, ghostContent) {
+    if (!copySettings.showGhostText) return;
+    const offsets = [
+        { y: -32, x: -2 },  // 向上偏移一行，向左偏移2px
+        { y: 32, x: 2 },    // 向下偏移一行，向右偏移2px
+        { y: -16, x: 1 }    // 向上偏移半行，向右偏移1px
+    ];
+    for (let j = 0; j < 3; j++) {
+        const ghostText = document.createElement('div');
+        ghostText.className = 'ghost-text';
+        ghostText.textContent = ghostContent;
+        ghostText.style.transform = `translate(${offsets[j].x}px, ${offsets[j].y}px)`;
+        ghostText.style.opacity = 1 - j * 0.3;
+        container.insertBefore(ghostText, container.firstChild);
+    }
 }
 
 // 显示经文
@@ -807,22 +851,7 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
         }
 
         // 添加多层透字效果
-        if (copySettings.showGhostText) {
-            const offsets = [
-                { y: -32, x: -2 },  // 向上偏移一行，向左偏移2px
-                { y: 32, x: 2 },    // 向下偏移一行，向右偏移2px
-                { y: -16, x: 1 }    // 向上偏移半行，向右偏移1px
-            ];
-
-            for (let j = 0; j < 3; j++) {
-                const ghostText = document.createElement('div');
-                ghostText.className = 'ghost-text';
-                ghostText.textContent = ghostContent;
-                ghostText.style.transform = `translate(${offsets[j].x}px, ${offsets[j].y}px)`;
-                ghostText.style.opacity = 1 - j * 0.3;
-                result.insertBefore(ghostText, result.firstChild);
-            }
-        }
+        appendGhostLayers(result, ghostContent);
     } else {
         // 逐节显示模式
         result.classList.remove('paragraph-mode');
@@ -852,6 +881,8 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
             ? PretextBible.colorizeVersesWithPretext(verseTexts, true, copySettings.enableNameUnderline)
             : null;
 
+        let verseGhostContent = '';
+
         for (let idx = 0; idx < verseNumbers.length; idx++) {
             const i = verseNumbers[idx];
 
@@ -880,7 +911,11 @@ async function displayVerse(bookName, chapter, startVerse, endVerse) {
             }
 
             result.appendChild(verseElement);
+            verseGhostContent += `${i} ${chapterData[i]} `;
         }
+
+        // 添加多层透字效果
+        appendGhostLayers(result, verseGhostContent);
     }
 
     // 显示复制按钮和下载按钮
@@ -1552,8 +1587,13 @@ function showChapters(book) {
         onDrag(e.clientX, e.clientY);
     });
     
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchend', endDrag);
+    // 全局绑定一次（避免每次打开章节面板都重复添加监听）
+    if (!showChapters._dragBound) {
+        showChapters._dragBound = true;
+        window.addEventListener('mouseup', () => { if (showChapters._end) showChapters._end(); });
+        window.addEventListener('touchend', () => { if (showChapters._end) showChapters._end(); });
+    }
+    showChapters._end = endDrag;
     // 全局 touchend 防止手指滑出 grid 后丢失事件
 }
 
@@ -1594,58 +1634,107 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载保存的设置
     loadSettings();
     
-    // === 滑动切换章节 ===
-    let swipeStartX = 0, swipeStartY = 0, swipeActive = false;
-    const SWIPE_THRESHOLD = 50;  // px
-    
+    // === 滑动切换章节（跟手动画 + 中央文字提示） ===
+    const swipeHint = document.getElementById('swipe-hint');
+    const swipeArrow = document.getElementById('swipe-arrow');
+    const swipeText = document.getElementById('swipe-text');
+    const SWIPE_THRESHOLD = 60;  // px
+    let st = null;               // 手势状态
+
+    function canGoChapter(delta) {
+        if (!currentBook || !currentChapter) return false;
+        const max = BOOK_CHAPTER_COUNTS[currentBook.name] || 0;
+        const n = currentChapter + delta;
+        return n >= 1 && n <= max;
+    }
+
     result.addEventListener('touchstart', (e) => {
-        swipeStartX = e.touches[0].clientX;
-        swipeStartY = e.touches[0].clientY;
-        swipeActive = true;
+        const t = e.touches[0];
+        st = { x: t.clientX, y: t.clientY, dx: 0, delta: 0, locked: false };
     }, { passive: true });
-    
-    result.addEventListener('touchend', (e) => {
-        if (!swipeActive) return;
-        swipeActive = false;
-        const dx = e.changedTouches[0].clientX - swipeStartX;
-        const dy = e.changedTouches[0].clientY - swipeStartY;
-        
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
-            navigateChapter(dx < 0 ? +1 : -1);  // 左滑=下一章，右滑=上一章
+
+    result.addEventListener('touchmove', (e) => {
+        if (!st) return;
+        const t = e.touches[0];
+        const dx = t.clientX - st.x;
+        const dy = t.clientY - st.y;
+        // 水平占优才锁定为翻页手势
+        if (!st.locked) {
+            if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+            if (Math.abs(dy) > Math.abs(dx)) return;
+            st.locked = true;
+        }
+        e.preventDefault();
+        const delta = dx < 0 ? 1 : -1;       // 左滑=下一章
+        st.delta = delta;
+        st.dx = dx;
+        // 跟手位移（到边界时加阻尼）
+        const damp = canGoChapter(delta) ? 1 : 0.35;
+        result.style.transform = 'translateX(' + (dx * damp) + 'px)';
+        // 中央提示：箭头 + 上一章/下一章
+        swipeArrow.textContent = delta > 0 ? '\u203A' : '\u2039';
+        swipeText.textContent = delta > 0 ? '下一章' : '上一章';
+        swipeHint.classList.toggle('blocked', !canGoChapter(delta));
+        swipeHint.style.opacity = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+    }, { passive: false });
+
+    result.addEventListener('touchend', () => {
+        if (!st) return;
+        const local = st;
+        st = null;
+        swipeHint.style.opacity = 0;
+        if (!local.locked) { resetSwipe(); return; }
+        if (Math.abs(local.dx) > SWIPE_THRESHOLD && canGoChapter(local.delta)) {
+            animateChapterChange(local.delta);
+        } else {
+            resetSwipe();
         }
     }, { passive: true });
-    
-    // 桌面端键盘左右箭头
+
+    // 松手回弹
+    function resetSwipe() {
+        result.classList.add('swiping');
+        result.style.transform = 'translateX(0)';
+        setTimeout(() => {
+            result.classList.remove('swiping');
+            result.style.transform = '';
+        }, 230);
+    }
+
+    // 滑出 → 加载新章节 → 滑入
+    async function animateChapterChange(delta) {
+        const W = window.innerWidth;
+        result.classList.add('swiping');
+        result.style.transform = 'translateX(' + (-delta * W) + 'px)';
+        showToast(delta > 0 ? '下一章' : '上一章');
+        await new Promise(r => setTimeout(r, 230));
+
+        const newChapter = currentChapter + delta;
+        input.value = currentBook.name + newChapter + 'z';
+        inputState = 'endVerse';
+
+        result.classList.remove('swiping');
+        result.style.transform = 'translateX(' + (delta * W * 0.25) + 'px)';
+        await displayVerse(currentBook.name, newChapter, 1, 'end');
+
+        requestAnimationFrame(() => {
+            result.classList.add('swiping', 'chapter-entering');
+            result.style.transform = 'translateX(0)';
+            setTimeout(() => {
+                result.classList.remove('swiping', 'chapter-entering');
+                result.style.transform = '';
+            }, 240);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 桌面端键盘左右箭头（同样带动画）
     document.addEventListener('keydown', (e) => {
         if (document.activeElement === input) return;  // 输入框里不触发
         if (!currentBook || !currentChapter) return;
-        if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateChapter(-1); }
-        if (e.key === 'ArrowRight') { e.preventDefault(); navigateChapter(+1); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); animateChapterChange(-1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); animateChapterChange(1); }
     });
-    
-    // 切换上/下一章（仅当前书卷内）
-    async function navigateChapter(delta) {
-        if (!currentBook || !currentChapter) return;
-        
-        // 章节数从 bibleData 取（books 数组本身没有 chapters 属性）
-        await loadBook(currentBook.name);
-        const chapterKeys = bibleData[currentBook.name] ? Object.keys(bibleData[currentBook.name]) : [];
-        const maxChapter = chapterKeys.length;
-        if (maxChapter === 0) return;
-        
-        const newChapter = currentChapter + delta;
-        if (newChapter < 1 || newChapter > maxChapter) return;  // 到边界就不动
-        
-        // 更新输入框显示
-        input.value = currentBook.name + newChapter + 'z';
-        inputState = 'endVerse';
-        
-        displayVerse(currentBook.name, newChapter, 1, 'end');
-        
-        // 滚动到顶部
-        result.scrollTop = 0;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
     
     input.addEventListener('input', handleInput);
     input.addEventListener('keydown', handleKeydown);
