@@ -47,6 +47,12 @@
         button:hover {
             background-color: #0056b3;
         }
+        #clipboardBtn {
+            background-color: #17a2b8;
+        }
+        #clipboardBtn:hover {
+            background-color: #117a8b;
+        }
         .output-container {
             margin-top: 20px;
         }
@@ -126,6 +132,7 @@
     <div id="fileInfo" class="file-info"></div>
     
     <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt 和 .ass 格式)..."></textarea>
+    <button id="clipboardBtn">一键处理剪贴板内容</button>
     <button id="processBtn">移除时间轴信息</button>
     <div id="errorMessage" class="error"></div>
     <div class="output-container">
@@ -138,25 +145,10 @@
 </div>
 
 <script>
-    function processSubtitle() {
-        const inputArea = document.getElementById('inputText');
-        const outputArea = document.getElementById('outputText');
-        const errorDiv = document.getElementById('errorMessage');
-        
-        errorDiv.textContent = '';
-        outputArea.value = '';
-
-        const input = inputArea.value;
-
-        if (!input.trim()) {
-            errorDiv.textContent = "请输入字幕内容或上传文件。";
-            return;
-        }
-
-        try {
-            let lines = input.split('\n');
-            let outputLines = [];
-            let isAssFormat = lines.some(line => line.trim().startsWith("Dialogue:"));
+    function processText(input) {
+        let lines = input.split('\n');
+        let outputLines = [];
+        let isAssFormat = lines.some(line => line.trim().startsWith("Dialogue:"));
 
             if (isAssFormat) {
                 let inEventsSection = false;
@@ -200,11 +192,70 @@
                 }
             }
 
-            outputArea.value = outputLines.join('\n');
+            return outputLines.join('\n');
+    }
 
+    function processSubtitle() {
+        const inputArea = document.getElementById('inputText');
+        const outputArea = document.getElementById('outputText');
+        const errorDiv = document.getElementById('errorMessage');
+
+        errorDiv.textContent = '';
+        outputArea.value = '';
+
+        const input = inputArea.value;
+
+        if (!input.trim()) {
+            errorDiv.textContent = "请输入字幕内容或上传文件。";
+            return;
+        }
+
+        try {
+            outputArea.value = processText(input);
         } catch (error) {
             console.error('处理过程中发生错误:', error);
             errorDiv.textContent = "处理过程中发生错误: " + error.message;
+        }
+    }
+
+    async function processFromClipboard() {
+        const btn = document.getElementById('clipboardBtn');
+        const inputArea = document.getElementById('inputText');
+        const outputArea = document.getElementById('outputText');
+        const errorDiv = document.getElementById('errorMessage');
+
+        errorDiv.textContent = '';
+
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+            errorDiv.textContent = "当前浏览器不支持读取剪贴板，请手动粘贴到文本框后处理。";
+            return;
+        }
+
+        try {
+            const text = await navigator.clipboard.readText();
+            if (!text.trim()) {
+                errorDiv.textContent = "剪贴板是空的，请先复制字幕内容。";
+                return;
+            }
+
+            inputArea.value = text;
+            const result = processText(text);
+            if (!result.trim()) {
+                errorDiv.textContent = "没有从剪贴板内容中解析出字幕文本。";
+                return;
+            }
+
+            outputArea.value = result;
+            await navigator.clipboard.writeText(result);
+
+            const originalText = btn.textContent;
+            btn.textContent = '已处理并复制!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        } catch (error) {
+            console.error('剪贴板处理失败:', error);
+            errorDiv.textContent = "无法访问剪贴板（权限被拒绝或页面非安全上下文），请手动粘贴后处理。";
         }
     }
 
@@ -327,6 +378,7 @@
         });
 
         document.getElementById('processBtn').addEventListener('click', processSubtitle);
+        document.getElementById('clipboardBtn').addEventListener('click', processFromClipboard);
         document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
         document.getElementById('downloadBtn').addEventListener('click', downloadTxt);
     });
